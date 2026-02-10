@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=864, initial-scale=1.0">
+    <title>TrueScore CEO Deck</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* 1. CSS Variables & Reset */
+        :root {
+            --bg-color: #080C14;
+            --body-bg: #050505;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --accent-blue: #3B82F6;
+            --signal-green: #10B981;
+            --alert-red: #EF4444;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --grid-line-color: rgba(255, 255, 255, 0.03);
+
+            --font-manrope: 'Manrope', sans-serif;
+            --font-inter: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: var(--font-inter);
+            color: var(--text-primary);
+        }
+
+        /* 2. Presentation Canvas */
+        #presentation-container {
+            width: 1280px;
+            height: 864px;
+            /* Increased by 20% from 720px */
+            background-color: var(--bg-color);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            /* Hidden by default */
+            padding: 48px;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        /* 3. Grid System */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: auto 1fr auto;
+            gap: 24px;
+            /* Slight gap for spacing, though spec says 0 gap, but content usually needs spacing. Spec says gap: 0. I will respect spec. */
+            gap: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Spec Override for Grid Gap inside content zones if needed */
+        .content-zone {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+            height: 100%;
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            padding: 0 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .grid-line {
+            border-right: 1px solid var(--grid-line-color);
+            height: 100%;
+        }
+
+        .grid-line:last-child {
+            border-right: none;
+        }
+
+        /* 4. Typography & Components */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-manrope);
+        }
+
+        .mega-title {
+            font-size: 120px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.0;
+        }
+
+        .slide-title {
+            font-size: 64px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+        }
+
+        .sub-header {
+            font-size: 28px;
+            font-family: var(--font-manrope);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        p,
+        li {
+            font-size: 20px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .mono-label {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-blue);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .big-number {
+            font-family: var(--font-manrope);
+            font-size: 100px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            line-height: 1.0;
+        }
+
+        .big-number-label {
+            font-family: var(--font-inter);
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .swiss-card {
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .swiss-card h3 {
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+
+        .meta-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 0;
+            /* content-zone handles spacing */
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            height: 30px;
+            /* Fixed height for structure */
+        }
+
+        .source-footnote {
+            grid-column: 1 / -1;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: auto;
+            padding-top: 12px;
+        }
+
+        /* 5. Utility Classes */
+        .text-white {
+            color: var(--text-primary);
+        }
+
+        .text-gray {
+            color: var(--text-secondary);
+        }
+
+        .text-blue {
+            color: var(--accent-blue);
+        }
+
+        .text-green {
+            color: var(--signal-green);
+        }
+
+        .text-red {
+            color: var(--alert-red);
+        }
+
+        .bg-full-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* z-index: -1; Removed to fix visibility issue */
+            background-size: cover;
+            background-position: center;
+        }
+
+        .overlay-dark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 12, 20, 0.65);
+            z-index: 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
+            text-align: left;
+        }
+
+        td {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Navigation & Controls */
+        .controls-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            /* Slightly taller for clickability */
+            background: #0D1117;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            /* Space between counter (left) and buttons (right) */
+            padding: 0 32px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .slide-counter {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .control-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Helpers for Layout Archetypes */
+        .col-1-6 {
+            grid-column: 1 / 7;
+        }
+
+        .col-7-12 {
+            grid-column: 7 / 13;
+        }
+
+        .col-1-12 {
+            grid-column: 1 / 13;
+        }
+
+        .col-2-12 {
+            grid-column: 2 / 12;
+        }
+
+        .flex-col-center {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        /* Audio Player Styles */
+        .audio-player {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 100%;
+            width: 400px;
+            /* Fixed width for stability */
+            justify-content: center;
+        }
+
+        .scrubber-container {
+            flex-grow: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Hit area for easier clicking */
+        .scrubber-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .scrubber-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--accent-blue);
+            border-radius: 2px;
+            position: relative;
+            pointer-events: none;
+            /* Let clicks pass to container */
+        }
+
+        .scrubber-thumb {
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            transition: transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .scrubber-container:hover .scrubber-thumb {
+            transform: translateY(-50%) scale(1);
+        }
+
+        .time-display {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            width: 80px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="presentation-container">
+
+        <!-- === SLIDE 1: Title === -->
+        <div class="slide active" id="slide-1">
+            <div class="bg-full-image"
+                style="background-image: url('assets/images/slide_01_hero_arena.jpg'); filter: grayscale(40%) contrast(1.1) brightness(0.8);">
+            </div>
+            <div class="overlay-dark" style="background: linear-gradient(rgba(8,12,20,0.65), rgba(8,12,20,0.65));">
+            </div>
+
+            <div style="position: relative; z-index: 1; height: 100%; display: grid; grid-template-rows: 1fr auto;">
+                <!-- Logo: Top Right, Grey, Smaller -->
+                <img src="assets/images/TrueScore_White.png"
+                    style="width: 300px; position: absolute; top: 48px; right: 48px; opacity: 0.5; filter: grayscale(100%);"
+                    alt="TrueScore Logo">
+
+                <!-- Content -->
+                <div style="grid-column: 1 / -1; align-self: end; padding-bottom: 80px;">
+                    <h1 class="mega-title" style="margin-bottom: 16px;">THE JUDGING<br>PROBLEM</h1>
+                    <p style="font-size: 24px; font-weight: 300; color: var(--text-secondary); margin-bottom: 24px;">Why
+                        the $8 Million
+                        Question Demands an Answer in 2026</p>
+
+                    <!-- Moved Footer Text: Left Justified -->
+                    <div style="font-family: var(--font-mono); font-size: 11px; color: #475569;">
+                        Confidential — Prepared for Varsity Brands Executive Leadership | February 2026
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 2: Cost of Status Quo === -->
+        <div class="slide" id="slide-2">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE PROBLEM</span>
+                    <span>COST OF STATUS QUO</span>
+                </div>
+
+                <!-- Left Col: Content -->
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">THE COST OF THE STATUS QUO</span>
+                    <div class="big-number">$8M</div>
+                    <span class="big-number-label">Annual Judging Expenditure Across 50 Events</span>
+
+                    <table>
+                        <tr>
+                            <td>Judge travel</td>
+                            <td style="text-align: right;">$45,000</td>
+                        </tr>
+                        <tr>
+                            <td>Lodging (2–3 nights × 35 judges)</td>
+                            <td style="text-align: right;">$35,000</td>
+                        </tr>
+                        <tr>
+                            <td>Per diems & meals</td>
+                            <td style="text-align: right;">$21,000</td>
+                        </tr>
+                        <tr>
+                            <td>Training & certification</td>
+                            <td style="text-align: right;">$18,000</td>
+                        </tr>
+                        <tr>
+                            <td>Last-minute replacements</td>
+                            <td style="text-align: right;">$12,000</td>
+                        </tr>
+                        <tr>
+                            <td>Insurance & liability</td>
+                            <td style="text-align: right;">$15,000</td>
+                        </tr>
+                        <tr>
+                            <td>Administrative coordination</td>
+                            <td style="text-align: right;">$14,000</td>
+                        </tr>
+                        <tr style="font-weight: 700;">
+                            <td>Total per event</td>
+                            <td style="text-align: right;">$160,000</td>
+                        </tr>
+                    </table>
+
+                    <div
+                        style="display: flex; gap: 24px; margin-top: 24px; font-size: 14px; color: var(--text-secondary);">
+                        <span>~2,500 disputes/yr</span>
+                        <span>~$500K resolution cost</span>
+                        <span>3–5% annual churn</span>
+                    </div>
+                </div>
+
+                <!-- Right Col -->
+                <div class="col-7-12" style="position: relative;">
+                    <div class="bg-full-image"
+                        style="background-image: url('assets/images/slide_02_burning_cash.jpg'); filter: grayscale(30%) contrast(1.1);">
+                    </div>
+                    <div
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, #080C14 5%, transparent 40%);">
+                    </div>
+                </div>
+
+                <div class="source-footnote">Per-event cost analysis from industry interviews, USASF event staffing
+                    requirements</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 3: The Consistency Crisis === -->
+        <div class="slide" id="slide-3">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE PROBLEM</span>
+                    <span>THE TRUST DEFICIT</span>
+                </div>
+
+                <!-- Left Col -->
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">THE TRUST DEFICIT</span>
+                    <h2 style="font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 40px;">8–12% Score
+                        Variance on the Same Routine</h2>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                        <div>
+                            <div class="big-number" style="font-size: 60px;">8,000</div>
+                            <div class="big-number-label">Certified Judges</div>
+                        </div>
+                        <div>
+                            <div class="big-number" style="font-size: 60px; color: var(--text-secondary);">12,000</div>
+                            <div class="big-number-label">Peak Demand</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <div class="big-number" style="font-size: 80px;">73%</div>
+                        <div class="big-number-label">Parent Complaints Cite Unclear Scoring</div>
+                    </div>
+
+                    <table>
+                        <tr>
+                            <td>Dispute escalations per major event</td>
+                            <td style="text-align: right;">50+</td>
+                        </tr>
+                        <tr>
+                            <td>Families who say transparency would increase loyalty</td>
+                            <td style="text-align: right;">68%</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Right Col -->
+                <div class="col-7-12" style="position: relative;">
+                    <div class="bg-full-image"
+                        style="background-image: url('assets/images/slide_03_stressed_judge.jpg'); filter: grayscale(30%) contrast(1.1);">
+                    </div>
+                    <div
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, #080C14 5%, transparent 40%);">
+                    </div>
+                </div>
+
+                <div class="source-footnote">Industry survey data, gym owner interviews, event producer interviews</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 4: Market Evidence === -->
+        <div class="slide" id="slide-4">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>MARKET CONTEXT</span>
+                    <span>INDUSTRY EVIDENCE</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">INDUSTRY EVIDENCE</span>
+                    <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 32px;">AI Judging Isn't Coming — It's
+                        Here.</h2>
+
+                    <table style="margin-bottom: 40px;">
+                        <thead>
+                            <tr>
+                                <th>Sport</th>
+                                <th>System</th>
+                                <th>Operator</th>
+                                <th>Status</th>
+                                <th>Since</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Artistic Gymnastics</td>
+                                <td>JSS</td>
+                                <td>Fujitsu / FIG</td>
+                                <td>Production — Olympics</td>
+                                <td>2019</td>
+                            </tr>
+                            <tr>
+                                <td>Tennis</td>
+                                <td>Hawk-Eye Live ELC</td>
+                                <td>Sony</td>
+                                <td>Autonomous — all Grand Slams</td>
+                                <td>2020</td>
+                            </tr>
+                            <tr>
+                                <td>Cricket</td>
+                                <td>DRS / UltraEdge</td>
+                                <td>Sony</td>
+                                <td>Official match referee</td>
+                                <td>2017</td>
+                            </tr>
+                            <tr>
+                                <td>Diving</td>
+                                <td>AI Scoring Trials</td>
+                                <td>FINA</td>
+                                <td>Pilot completed</td>
+                                <td>2023</td>
+                            </tr>
+                            <tr>
+                                <td>Figure Skating</td>
+                                <td>AI Scoring</td>
+                                <td>ISU</td>
+                                <td>Pilot announced</td>
+                                <td>2024</td>
+                            </tr>
+                            <tr>
+                                <td>NFL</td>
+                                <td>Next Gen Stats</td>
+                                <td>AWS / Zebra</td>
+                                <td>Real-time player tracking</td>
+                                <td>2017</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="swiss-card">
+                            <span class="mono-label">THE FUJITSU PRECEDENT</span>
+                            <h3>$10M+ invested</h3>
+                            <p>Single-athlete only — cannot handle multi-person stunts</p>
+                        </div>
+                        <div class="swiss-card">
+                            <span class="mono-label">THE OLYMPIC ACCELERANT</span>
+                            <h3>Milano Cortina 2026: AI judging debuts</h3>
+                            <p>LA 2028: technology-assisted scoring expected as standard</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">FIG press releases, ATP/WTA announcements, ISU/FINA reporting, competitive
+                    intelligence analysis</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 5: The Window === -->
+        <div class="slide" id="slide-5">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>STRATEGIC TIMING</span>
+                    <span>THE WINDOW</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">STRATEGIC TIMING</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 24px;">Zero Competitors. No Standards.
+                        A Blank Slate.</h2>
+
+                    <table style="margin-bottom: 40px;">
+                        <tbody>
+                            <tr>
+                                <td>Direct AI competitors in cheerleading judging</td>
+                                <td style="font-weight: 700;">Zero</td>
+                            </tr>
+                            <tr>
+                                <td>USASF rules for technology-assisted scoring</td>
+                                <td style="font-weight: 700;">None exist</td>
+                            </tr>
+                            <tr>
+                                <td>IEEE/ISO standards for AI in sports judging</td>
+                                <td style="font-weight: 700;">In draft (2026–2027)</td>
+                            </tr>
+                            <tr>
+                                <td>EU AI Act regulation for evaluation AI</td>
+                                <td style="font-weight: 700; color: var(--alert-red);">Effective August 2026 — $300K+
+                                    barrier</td>
+                            </tr>
+                            <tr>
+                                <td>Cheerleading-specific AI training data (public)</td>
+                                <td style="font-weight: 700;">None</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <span class="mono-label" style="margin-bottom: 16px;">COST PER TRILLION OPERATIONS ($/TOPS)</span>
+                    <!-- Custom Chart -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                        <!-- 2020 -->
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span
+                                style="width: 50px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">2020</span>
+                            <div
+                                style="flex-grow: 1; height: 32px; background: rgba(239,68,68,0.3); border-left: 2px solid var(--alert-red); display: flex; align-items: center; padding-left: 12px;">
+                                <span style="font-family: var(--font-mono); font-size: 12px;">$19.00</span>
+                            </div>
+                        </div>
+                        <!-- 2022 -->
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span
+                                style="width: 50px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">2022</span>
+                            <div
+                                style="width: 31%; height: 32px; background: rgba(251,191,36,0.3); border-left: 2px solid #FBBF24; display: flex; align-items: center; padding-left: 12px;">
+                                <span style="font-family: var(--font-mono); font-size: 12px;">$5.99</span>
+                            </div>
+                        </div>
+                        <!-- 2025 -->
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span
+                                style="width: 50px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">2025</span>
+                            <div
+                                style="width: 15%; height: 32px; background: rgba(59,130,246,0.3); border-left: 2px solid var(--accent-blue); display: flex; align-items: center; padding-left: 12px;">
+                                <span style="font-family: var(--font-mono); font-size: 12px;">$3.00</span>
+                            </div>
+                        </div>
+                        <!-- 2028 -->
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span
+                                style="width: 50px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">2028</span>
+                            <div
+                                style="width: 1%; height: 32px; background: rgba(16,185,129,0.3); border-left: 2px solid var(--signal-green); display: flex; align-items: center; padding-left: 12px;">
+                                <span style="font-family: var(--font-mono); font-size: 12px;">$0.20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="source-footnote">NVIDIA published specs, GPU/NPU industry trends, IEEE P3716 timeline</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 6: Competitor Playbook === -->
+        <div class="slide" id="slide-6">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>COMPETITIVE RISK</span>
+                    <span>PROJECT GLASS HOUSE</span>
+                </div>
+
+                <div class="col-1-12 flex-col-center">
+                    <span class="mono-label">PROJECT GLASS HOUSE</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">This Is the Playbook a
+                        Challenger Would Run Against Varsity.</h2>
+
+                    <blockquote
+                        style="border-left: 3px solid var(--accent-blue); padding-left: 24px; font-style: italic; color: var(--text-secondary); font-size: 20px; margin-bottom: 32px;">
+                        "Varsity's greatest vulnerability is the subjectivity of scoring. The company that introduces
+                        AI-driven objective scoring doesn't just launch a competition — they launch 'The First Fair
+                        Sport.'"
+                    </blockquote>
+
+                    <table style="margin-bottom: 32px;">
+                        <thead>
+                            <tr>
+                                <th>Pillar</th>
+                                <th>Headline</th>
+                                <th>Subtext</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>"The End of Politics"</td>
+                                <td>"Gravity Doesn't Play Favorites."</td>
+                                <td>"The name on your jersey shouldn't decide the score."</td>
+                            </tr>
+                            <tr>
+                                <td>"Vindication for the Athlete"</td>
+                                <td>"You Work Too Hard for a Guess."</td>
+                                <td>"You train 20 hours a week for precision."</td>
+                            </tr>
+                            <tr>
+                                <td>"The Future Standard"</td>
+                                <td>"Subjectivity Is Obsolete."</td>
+                                <td>"We have self-driving cars. Why are we judging with pencil?"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <blockquote
+                        style="border-left: 3px solid var(--alert-red); padding-left: 24px; font-style: italic; color: var(--text-secondary); font-size: 20px;">
+                        "The ultimate goal: a parent walks into a Varsity event and asks — 'How do I know that score is
+                        real? Where is the data?' Once the customer asks that question, the challenger has won."
+                    </blockquote>
+
+                </div>
+
+                <div class="source-footnote">Project Glass House competitive war-game exercise</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 7: Three Paths === -->
+        <div class="slide" id="slide-7">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE STRATEGIC CHOICE</span>
+                    <span>THREE PATHS</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">THE STRATEGIC CHOICE</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 48px;">Do Nothing. Build Alone. Or
+                        Partner and Lead.</h2>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+                        <!-- Path A -->
+                        <div class="swiss-card"
+                            style="border-top: 3px solid var(--alert-red); height: 300px; justify-content: space-between;">
+                            <div>
+                                <span class="mono-label" style="color: var(--alert-red);">PATH A</span>
+                                <h3 style="margin-bottom: 12px;">Do Nothing</h3>
+                                <p>A competitor defines the standard. Varsity reacts.</p>
+                            </div>
+                            <div
+                                style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                                Cost: $0 | Risk: High
+                            </div>
+                        </div>
+
+                        <!-- Path B -->
+                        <div class="swiss-card"
+                            style="border-top: 3px solid var(--text-secondary); height: 300px; justify-content: space-between;">
+                            <div>
+                                <span class="mono-label" style="color: var(--text-secondary);">PATH B</span>
+                                <h3 style="margin-bottom: 12px;">Build Internally</h3>
+                                <p>Hire AI team from scratch. No cheerleading AI expertise exists.</p>
+                            </div>
+                            <div
+                                style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                                $2–5M | 18–24 months
+                            </div>
+                        </div>
+
+                        <!-- Path C -->
+                        <div class="swiss-card"
+                            style="border-top: 3px solid var(--signal-green); height: 300px; justify-content: space-between;">
+                            <div>
+                                <span class="mono-label" style="color: var(--signal-green);">PATH C</span>
+                                <h3 style="margin-bottom: 12px;">Partner With Us</h3>
+                                <p>5 rounds of research ready. 90-day zero-cost pilot. Varsity owns everything.</p>
+                            </div>
+                            <div
+                                style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 12px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                                $0 pilot | 90 days to proof
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Build timeline from AI engineering benchmarks, Architecture B from R4
+                    synthesis</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 8: Why Build, Not Buy === -->
+        <div class="slide" id="slide-8">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>STRATEGIC INFRASTRUCTURE</span>
+                    <span>OWN, DON'T RENT</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">STRATEGIC INFRASTRUCTURE</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 48px;">The Company That Owns the
+                        Scoring Engine Owns the Sport.</h2>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
+                        <!-- Card 1 -->
+                        <div class="swiss-card" style="height: 400px; justify-content: flex-start;">
+                            <i class="fa-solid fa-database"
+                                style="color: var(--accent-blue); font-size: 32px; margin-bottom: 24px;"></i>
+                            <span class="mono-label">DATA OWNERSHIP</span>
+                            <h3 style="margin-bottom: 16px;">Permanent Competitive Advantage</h3>
+                            <div
+                                style="font-size: 14px; color: var(--text-primary); margin-bottom: 12px; font-weight: 600;">
+                                500,000+ routines — largest corpus in the world</div>
+                            <p style="font-size: 16px;">Every competition generates more training data. Advantage
+                                compounds quarterly.</p>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="swiss-card" style="height: 400px; justify-content: flex-start;">
+                            <i class="fa-solid fa-gavel"
+                                style="color: var(--signal-green); font-size: 32px; margin-bottom: 24px;"></i>
+                            <span class="mono-label">STANDARDS AUTHORSHIP</span>
+                            <h3 style="margin-bottom: 16px;">Define the Market</h3>
+                            <div
+                                style="font-size: 14px; color: var(--text-primary); margin-bottom: 12px; font-weight: 600;">
+                                USASF has zero AI rules today</div>
+                            <p style="font-size: 16px;">Author the Technology Annex — every future competitor must be
+                                Varsity-compatible.</p>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="swiss-card" style="height: 400px; justify-content: flex-start;">
+                            <i class="fa-solid fa-shield-halved"
+                                style="color: var(--alert-red); font-size: 32px; margin-bottom: 24px;"></i>
+                            <span class="mono-label">REGULATORY COMPLIANCE</span>
+                            <h3 style="margin-bottom: 16px;">Barrier to Entry</h3>
+                            <div
+                                style="font-size: 14px; color: var(--text-primary); margin-bottom: 12px; font-weight: 600;">
+                                $300K+ EU AI Act compliance cost</div>
+                            <p style="font-size: 16px;">First to comply creates market access to 27 EU states + prices
+                                out underfunded challengers.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">EU AI Act analysis, IEEE P3716 timeline, KKR/IPO context</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 9: The Vision === -->
+        <div class="slide" id="slide-9">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE PRODUCT</span>
+                    <span>THE CO-PILOT THESIS</span>
+                </div>
+
+                <!-- Left Col: Content -->
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">THE PRODUCT THESIS</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 32px; line-height: 1.2;">We Score What
+                        Can Be Measured. Judges Focus on Intuition.</h2>
+
+                    <table style="margin-bottom: 32px;">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Nature</th>
+                                <th>AI Capability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Technical</td>
+                                <td>Objective</td>
+                                <td style="color: var(--accent-blue);">Frame-accurate</td>
+                            </tr>
+                            <tr>
+                                <td>Performance</td>
+                                <td>Subjective</td>
+                                <td style="color: var(--text-secondary);">Cannot score</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <ul style="list-style: none; margin-bottom: 32px;">
+                        <li style="margin-bottom: 12px; font-size: 16px; display: flex; align-items: center;"><i
+                                class="fa-solid fa-check"
+                                style="color: var(--signal-green); margin-right: 12px;"></i>Real-time skeletal pose
+                            extraction (60fps)</li>
+                        <li style="margin-bottom: 12px; font-size: 16px; display: flex; align-items: center;"><i
+                                class="fa-solid fa-check"
+                                style="color: var(--signal-green); margin-right: 12px;"></i>Automatic skill detection
+                            against USASF rules</li>
+                        <li style="margin-bottom: 12px; font-size: 16px; display: flex; align-items: center;"><i
+                                class="fa-solid fa-check"
+                                style="color: var(--signal-green); margin-right: 12px;"></i>Frame-accurate deduction
+                            tracking</li>
+                        <li style="margin-bottom: 12px; font-size: 16px; display: flex; align-items: center;"><i
+                                class="fa-solid fa-check"
+                                style="color: var(--signal-green); margin-right: 12px;"></i>Visual proof generation</li>
+                    </ul>
+
+                    <blockquote
+                        style="border-left: 3px solid var(--accent-blue); padding-left: 16px; font-style: italic; color: var(--text-primary); font-size: 20px;">
+                        "Don't replace me. Give me a co-pilot."
+                    </blockquote>
+                </div>
+
+                <!-- Right Col: Image -->
+                <div class="col-7-12" style="position: relative;">
+                    <div class="bg-full-image"
+                        style="background-image: url('assets/images/slide_09_pipeline.jpg'); filter: grayscale(30%) contrast(1.1);">
+                    </div>
+                    <div
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, #080C14 5%, transparent 40%);">
+                    </div>
+                </div>
+
+                <div class="source-footnote">65+ research documents, judge interview feedback</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 10: Trust Over Accuracy === -->
+        <div class="slide" id="slide-10">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE PRODUCT</span>
+                    <span>THE MOST IMPORTANT FINDING</span>
+                </div>
+
+                <!-- Left Col -->
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">THE MOST IMPORTANT FINDING</span>
+                    <div class="big-number">90% > 95%</div>
+                    <span class="big-number-label">With Evidence beats a Black Box</span>
+
+                    <div class="swiss-card" style="margin-bottom: 32px;">
+                        <span class="mono-label">WHAT PROOF LOOKS LIKE</span>
+                        <ul style="list-style: none; margin-top: 12px;">
+                            <li style="margin-bottom: 8px; font-size: 16px;">• Video clip (exact 2–3s deduction)</li>
+                            <li style="margin-bottom: 8px; font-size: 16px;">• Skeleton overlay (visible wireframe)</li>
+                            <li style="margin-bottom: 8px; font-size: 16px;">• Angle measurement (precise degrees)</li>
+                            <li style="margin-bottom: 8px; font-size: 16px;">• Rule citation (specific USASF rule)</li>
+                            <li style="font-size: 16px;">• Confidence Score (<span
+                                    style="color: var(--signal-green);">Green</span> / <span
+                                    style="color: #FBBF24;">Yellow</span> / <span
+                                    style="color: var(--alert-red);">Red</span>)</li>
+                        </ul>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Stakeholder</th>
+                                <th>Before</th>
+                                <th>After</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Parent</td>
+                                <td style="color: var(--alert-red);">"Unfair!"</td>
+                                <td style="color: var(--signal-green);">Sees exact angle</td>
+                            </tr>
+                            <tr>
+                                <td>Coach</td>
+                                <td>"Work on tuck"</td>
+                                <td>"Knee sep: 0.38m"</td>
+                            </tr>
+                            <tr>
+                                <td>Producer</td>
+                                <td>50+ complaints</td>
+                                <td>
+                                    <15 projected</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right Col -->
+                <div class="col-7-12" style="position: relative;">
+                    <div class="bg-full-image"
+                        style="background-image: url('assets/images/slide_10_proof.jpg'); filter: grayscale(30%) contrast(1.1);">
+                    </div>
+                    <div
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, #080C14 5%, transparent 40%);">
+                    </div>
+                </div>
+
+                <div class="source-footnote">Trust calibration research, Hawk-Eye impact on tennis disputes (ITF)</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 11: The Roadmap === -->
+        <div class="slide" id="slide-11">
+            <div class="bg-full-image"
+                style="background-image: url('assets/images/slide_11_roadmap.jpg'); filter: grayscale(80%) contrast(1.1) brightness(0.7); opacity: 0.4;">
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>THE ROADMAP</span>
+                    <span>EARNING TRUST IN STAGES</span>
+                </div>
+
+                <div class="col-1-12 flex-col-center">
+                    <span class="mono-label">EARNING TRUST IN STAGES</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 48px;">Five Phases. Each Gated by
+                        Metrics. Varsity Controls the Pace.</h2>
+
+                    <!-- Roadmap Timeline Visual -->
+                    <div
+                        style="display: flex; justify-content: space-between; position: relative; width: 100%; margin-bottom: 32px;">
+                        <!-- Horizontal Line -->
+                        <div
+                            style="position: absolute; top: 16px; left: 0; width: 100%; height: 2px; background: var(--border-color); z-index: 0;">
+                        </div>
+
+                        <!-- Phase 1 -->
+                        <div class="swiss-card"
+                            style="width: 19%; position: relative; z-index: 1; padding: 16px; background: #080C14; border: 1px solid var(--border-color);">
+                            <div
+                                style="background: var(--text-secondary); width: 24px; height: 24px; border-radius: 50%; color: #000; text-align: center; font-weight: bold; font-size: 14px; line-height: 24px; margin-bottom: 12px;">
+                                1</div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px;">Shadow</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary);">AI scores silently. Never shown
+                                publicly.</p>
+                            <div
+                                style="margin-top: 12px; font-size: 11px; font-family: var(--font-mono); color: var(--signal-green);">
+                                RISK: ZERO</div>
+                        </div>
+
+                        <!-- Phase 2 -->
+                        <div class="swiss-card"
+                            style="width: 19%; position: relative; z-index: 1; padding: 16px; background: #080C14; border: 1px solid var(--border-color);">
+                            <div
+                                style="background: var(--text-secondary); width: 24px; height: 24px; border-radius: 50%; color: #000; text-align: center; font-weight: bold; font-size: 14px; line-height: 24px; margin-bottom: 12px;">
+                                2</div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px;">Whisper</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary);">Head judge sees suggestions only.
+                            </p>
+                            <div
+                                style="margin-top: 12px; font-size: 11px; font-family: var(--font-mono); color: #FBBF24;">
+                                RISK: MINIMAL</div>
+                        </div>
+
+                        <!-- Phase 3 -->
+                        <div class="swiss-card"
+                            style="width: 19%; position: relative; z-index: 1; padding: 16px; background: #080C14; border: 1px solid var(--border-color);">
+                            <div
+                                style="background: var(--accent-blue); width: 24px; height: 24px; border-radius: 50%; color: #FFF; text-align: center; font-weight: bold; font-size: 14px; line-height: 24px; margin-bottom: 12px;">
+                                3</div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--accent-blue);">Validate</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary);">AI flags discrepancies. Judges
+                                retain authority.</p>
+                            <div
+                                style="margin-top: 12px; font-size: 11px; font-family: var(--font-mono); color: var(--accent-blue);">
+                                RISK: LOW</div>
+                        </div>
+
+                        <!-- Phase 4 -->
+                        <div class="swiss-card"
+                            style="width: 19%; position: relative; z-index: 1; padding: 16px; background: #080C14; border: 1px solid var(--border-color);">
+                            <div
+                                style="background: var(--text-secondary); width: 24px; height: 24px; border-radius: 50%; color: #000; text-align: center; font-weight: bold; font-size: 14px; line-height: 24px; margin-bottom: 12px;">
+                                4</div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px;">Co-Pilot</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary);">AI scores technical. Judges score
+                                performance.</p>
+                            <div
+                                style="margin-top: 12px; font-size: 11px; font-family: var(--font-mono); color: #FBBF24;">
+                                RISK: MODERATE</div>
+                        </div>
+
+                        <!-- Phase 5 -->
+                        <div class="swiss-card"
+                            style="width: 19%; position: relative; z-index: 1; padding: 16px; background: #080C14; border: 1px solid var(--border-color);">
+                            <div
+                                style="background: var(--text-secondary); width: 24px; height: 24px; border-radius: 50%; color: #000; text-align: center; font-weight: bold; font-size: 14px; line-height: 24px; margin-bottom: 12px;">
+                                5</div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px;">Autopilot</h3>
+                            <p style="font-size: 14px; color: var(--text-secondary);">Fully autonomous technical
+                                scoring.</p>
+                            <div
+                                style="margin-top: 12px; font-size: 11px; font-family: var(--font-mono); color: var(--alert-red);">
+                                RISK: HIGH</div>
+                        </div>
+                    </div>
+
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 18px;">No phase advances
+                        without hitting its gate. Varsity controls the pace.</p>
+                </div>
+
+                <div class="source-footnote">Phased autonomy framework, standard ML evaluation criteria</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 12: What Everyone Sees === -->
+        <div class="slide" id="slide-12">
+            <div class="bg-full-image"
+                style="background-image: url('assets/images/slide_12_experience.jpg'); filter: grayscale(80%) contrast(1.1) brightness(0.7); opacity: 0.4;">
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>THE PRODUCT</span>
+                    <span>FOUR STAKEHOLDER VIEWS</span>
+                </div>
+
+                <div class="col-1-12 flex-col-center">
+                    <span class="mono-label">THE PRODUCT EXPERIENCE</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 48px;">Four Views. Four Stakeholders.
+                        One System.</h2>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+                        <!-- Judge -->
+                        <div class="swiss-card" style="height: 320px;">
+                            <i class="fa-solid fa-gavel"
+                                style="font-size: 32px; color: var(--text-primary); margin-bottom: 24px;"></i>
+                            <span class="mono-label">JUDGE</span>
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Validator View</h3>
+                            <p style="font-size: 16px;">Live video + AI suggestions + confidence scores + override
+                                button — always available.</p>
+                        </div>
+
+                        <!-- Coach -->
+                        <div class="swiss-card" style="height: 320px;">
+                            <i class="fa-solid fa-chart-line"
+                                style="font-size: 32px; color: var(--accent-blue); margin-bottom: 24px;"></i>
+                            <span class="mono-label" style="color: var(--accent-blue);">COACH</span>
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Dashboard</h3>
+                            <p style="font-size: 16px;">Routine replay + skill breakdown + angle measurements + progress
+                                tracking.</p>
+                        </div>
+
+                        <!-- Parent -->
+                        <div class="swiss-card" style="height: 320px;">
+                            <i class="fa-solid fa-mobile-screen"
+                                style="font-size: 32px; color: var(--signal-green); margin-bottom: 24px;"></i>
+                            <span class="mono-label" style="color: var(--signal-green);">PARENT</span>
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Trust View</h3>
+                            <p style="font-size: 16px;">Score + plain-language explanation + video evidence for each
+                                deduction.</p>
+                        </div>
+
+                        <!-- Athlete -->
+                        <div class="swiss-card" style="height: 320px;">
+                            <i class="fa-solid fa-star"
+                                style="font-size: 32px; color: #FBBF24; margin-bottom: 24px;"></i>
+                            <span class="mono-label" style="color: #FBBF24;">ATHLETE</span>
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Highlight Reel</h3>
+                            <p style="font-size: 16px;">Best moments + improvement areas + shareable social-ready clips.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Product experience concepts, Judge Validator prototype validated</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 13: Cost Savings === -->
+        <div class="slide" id="slide-13">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>FINANCIAL IMPACT</span>
+                    <span>COST SAVINGS</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">FINANCIAL IMPACT</span>
+                    <div class="big-number" style="color: var(--signal-green);">$3.1M</div>
+                    <span class="big-number-label">Per Year in Direct Savings</span>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 48px;">
+                        <!-- Table 1 -->
+                        <div>
+                            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text-secondary);">Per-Event
+                                Cost Reduction</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Current</th>
+                                        <th>With TrueScore</th>
+                                        <th>Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Judges/event</td>
+                                        <td>40</td>
+                                        <td>28</td>
+                                        <td style="color: var(--signal-green);">-30%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cost/event</td>
+                                        <td>$160K</td>
+                                        <td>$112K</td>
+                                        <td style="color: var(--signal-green);">-$48K</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Complaints</td>
+                                        <td>50+</td>
+                                        <td>
+                                            <15< /td>
+                                        <td style="color: var(--signal-green);">-70%</td>
+                                    </tr>
+                                    <tr style="font-weight: 700;">
+                                        <td>Savings</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td style="color: var(--signal-green);">$55K</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Table 2 -->
+                        <div>
+                            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text-secondary);">Annual
+                                Impact (50 Events)</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Savings</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Labor & Travel</td>
+                                        <td style="color: var(--signal-green);">$2.4M</td>
+                                        <td>Reduced panel size</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dispute Admin</td>
+                                        <td style="color: var(--signal-green);">$500K</td>
+                                        <td>Fewer escalations</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Training</td>
+                                        <td style="color: var(--signal-green);">$200K</td>
+                                        <td>Automated certification</td>
+                                    </tr>
+                                    <tr style="font-weight: 700;">
+                                        <td>Total</td>
+                                        <td style="color: var(--signal-green);">$3.1M</td>
+                                        <td>Direct EBITDA impact</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Based on standard Varsity event P&L, 30% reduction in panel size (verified
+                    feasible)</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 14: New Revenue === -->
+        <div class="slide" id="slide-14">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>FINANCIAL IMPACT</span>
+                    <span>NEW REVENUE</span>
+                </div>
+
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">NEW REVENUE STREAMS</span>
+                    <div class="big-number" style="color: var(--accent-blue);">$15M+</div>
+                    <span class="big-number-label">Projected Annual ARR by Year 3</span>
+
+                    <div style="display: flex; flex-direction: column; gap: 24px; margin-top: 32px;">
+                        <!-- Stream 1 -->
+                        <div style="border-left: 3px solid var(--accent-blue); padding-left: 24px;">
+                            <h3 style="font-size: 24px; margin-bottom: 8px;">The "Glass House" Premium</h3>
+                            <p style="font-size: 16px; margin-bottom: 4px;">Parents pay for proof.</p>
+                            <div style="font-family: var(--font-mono); font-size: 14px; color: var(--accent-blue);">
+                                $10/athlete/event surcharge</div>
+                        </div>
+
+                        <!-- Stream 2 -->
+                        <div style="border-left: 3px solid var(--accent-blue); padding-left: 24px;">
+                            <h3 style="font-size: 24px; margin-bottom: 8px;">Coach Analytics Tier</h3>
+                            <p style="font-size: 16px; margin-bottom: 4px;">Moneyball for Cheer.</p>
+                            <div style="font-family: var(--font-mono); font-size: 14px; color: var(--accent-blue);">
+                                $299/gym/month SaaS</div>
+                        </div>
+
+                        <!-- Stream 3 -->
+                        <div style="border-left: 3px solid var(--accent-blue); padding-left: 24px;">
+                            <h3 style="font-size: 24px; margin-bottom: 8px;">Recruiting Database</h3>
+                            <p style="font-size: 16px; margin-bottom: 4px;">College scouts pay for verified stats.</p>
+                            <div style="font-family: var(--font-mono); font-size: 14px; color: var(--accent-blue);">
+                                $5K/university/year</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Col: Revenue Chart Placeholder or Big Graphic -->
+                <div class="col-7-12 flex-col-center"
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 48px;">
+                    <h3 style="text-align: center; margin-bottom: 48px;">Revenue Mix (Year 3)</h3>
+
+                    <!-- Simple CSS Bar Chart -->
+                    <div
+                        style="display: flex; align-items: flex-end; justify-content: center; gap: 48px; height: 300px; width: 100%;">
+                        <!-- Bar 1 -->
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: 12px; height: 100%;">
+                            <div style="flex-grow: 1; display: flex; align-items: flex-end;">
+                                <div style="width: 60px; height: 60%; background: var(--accent-blue); opacity: 0.8;">
+                                </div>
+                            </div>
+                            <span style="font-family: var(--font-mono); font-size: 12px;">PREMIUM</span>
+                            <span style="font-weight: 700;">$9M</span>
+                        </div>
+                        <!-- Bar 2 -->
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: 12px; height: 100%;">
+                            <div style="flex-grow: 1; display: flex; align-items: flex-end;">
+                                <div style="width: 60px; height: 30%; background: var(--accent-blue); opacity: 0.6;">
+                                </div>
+                            </div>
+                            <span style="font-family: var(--font-mono); font-size: 12px;">SAAS</span>
+                            <span style="font-weight: 700;">$4.5M</span>
+                        </div>
+                        <!-- Bar 3 -->
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: 12px; height: 100%;">
+                            <div style="flex-grow: 1; display: flex; align-items: flex-end;">
+                                <div style="width: 60px; height: 10%; background: var(--accent-blue); opacity: 0.4;">
+                                </div>
+                            </div>
+                            <span style="font-family: var(--font-mono); font-size: 12px;">DATA</span>
+                            <span style="font-weight: 700;">$1.5M</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Market sizing based on 500k athletes, 8k gyms, 300 universities</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 15: Owning the Standard === -->
+        <div class="slide" id="slide-15">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>STRATEGIC VALUE</span>
+                    <span>OWNING THE STANDARD</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">STRATEGIC VALUE</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 48px;">The Company That Writes the
+                        Rules Wins the Decade.</h2>
+
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 48px;">
+                        <!-- Table 1 -->
+                        <div>
+                            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text-secondary);">Standards
+                                Opportunity</h3>
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Body</th>
+                                        <th>Current State</th>
+                                        <th>Varsity Opportunity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>USASF</td>
+                                        <td>No AI/tech rules</td>
+                                        <td style="color: var(--accent-blue);">Author the "Technology Annex"</td>
+                                    </tr>
+                                    <tr>
+                                        <td>IEEE P3716</td>
+                                        <td>Drafting standards (2026–2027)</td>
+                                        <td style="color: var(--accent-blue);">Join as contributing member</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ISO/IEC 42001</td>
+                                        <td>AI management certification</td>
+                                        <td style="color: var(--accent-blue);">First certified system</td>
+                                    </tr>
+                                    <tr>
+                                        <td>EU AI Act</td>
+                                        <td>High Risk — effective Aug 2026</td>
+                                        <td style="color: var(--accent-blue);">First to comply — $300K+ barrier</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Table 2 -->
+                        <div>
+                            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--text-secondary);">IPO
+                                Narrative Impact</h3>
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Element</th>
+                                        <th>Without AI Scoring</th>
+                                        <th>With AI Scoring</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Revenue story</td>
+                                        <td>Organic event growth</td>
+                                        <td style="color: var(--signal-green);">Organic + platform ($2M+ scaling)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Technology moat</td>
+                                        <td>None</td>
+                                        <td style="color: var(--signal-green);">Proprietary AI + data moat + patents
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Industry governance</td>
+                                        <td>USASF relationships</td>
+                                        <td style="color: var(--signal-green);">Author of the technology standard</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Competitive defensibility</td>
+                                        <td>Brand + distribution</td>
+                                        <td style="color: var(--signal-green);">Brand + distribution + tech + data +
+                                            standards</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">KKR acquisition, standards body timelines, EU AI Act compliance analysis
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 16: Varsity's Unfair Advantage === -->
+        <div class="slide" id="slide-16">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>THE DATA MOAT</span>
+                    <span>VARSITY'S ADVANTAGE</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">THE DATA MOAT</span>
+                    <div class="big-number" style="color: #FFF;">500,000+</div>
+                    <span class="big-number-label">Historical Routines. No One Else Has This.</span>
+
+                    <div style="display: grid; grid-template-columns: 7fr 5fr; gap: 48px; margin-top: 48px;">
+                        <!-- Left: Data Table -->
+                        <div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Data Asset</th>
+                                        <th>Varsity</th>
+                                        <th>Competitor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Historical competition video</td>
+                                        <td style="color: var(--signal-green);">500K+ routines</td>
+                                        <td style="color: var(--alert-red);">Zero</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Official scoring paired with video</td>
+                                        <td style="color: var(--signal-green);">Available</td>
+                                        <td style="color: var(--alert-red);">Does not exist</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Multi-person stunt footage</td>
+                                        <td style="color: var(--signal-green);">Extensive</td>
+                                        <td style="color: var(--alert-red);">Nearly nonexistent</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Annual new routines</td>
+                                        <td style="color: var(--signal-green);">100K+/year</td>
+                                        <td style="color: var(--alert-red);">Must partner or film</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Right: Chart Placeholder -->
+                        <div
+                            style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 24px;">
+                            <span class="mono-label">ACCURACY TRAJECTORY</span>
+                            <div
+                                style="display: flex; align-items: flex-end; justify-content: space-around; height: 200px; margin-top: 24px;">
+                                <div style="width: 40px; height: 40%; background: #334155;"></div>
+                                <div style="width: 40px; height: 60%; background: #475569;"></div>
+                                <div style="width: 40px; height: 80%; background: #64748B;"></div>
+                                <div style="width: 40px; height: 95%; background: var(--signal-green);"></div>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-around; margin-top: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary);">
+                                <span>Y1</span><span>Y2</span><span>Y3</span><span>Y4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 32px; font-size: 16px; color: var(--text-secondary);">Every competition
+                        generates more data → better accuracy → more trust → more adoption → more data. This flywheel
+                        cannot be replicated.</p>
+                </div>
+
+                <div class="source-footnote">Data cost analysis, ML training curve data, Varsity event volume estimates
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 17: The Consulting Model === -->
+        <div class="slide" id="slide-17">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE PARTNERSHIP</span>
+                    <span>CONSULTING MODEL</span>
+                </div>
+
+                <!-- Left Col: Content -->
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">THE PARTNERSHIP STRUCTURE</span>
+                    <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 32px; line-height: 1.2;">We Launch It.
+                        You Own It. We Transition to Advisory.</h2>
+
+                    <!-- Timeline Steps -->
+                    <div
+                        style="display: flex; flex-direction: column; gap: 24px; position: relative; padding-left: 24px; border-left: 2px solid var(--border-color);">
+                        <!-- Step 1 -->
+                        <div style="position: relative;">
+                            <div
+                                style="position: absolute; left: -31px; top: 0; width: 12px; height: 12px; background: var(--accent-blue); border-radius: 50%; border: 2px solid #000;">
+                            </div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--accent-blue);">Step 1: PROVE
+                            </h3>
+                            <p style="font-size: 14px; margin-bottom: 4px;">We lead. Build POC, run shadow pilot.</p>
+                            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">
+                                90 days → working demo + accuracy data</div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div style="position: relative;">
+                            <div
+                                style="position: absolute; left: -31px; top: 0; width: 12px; height: 12px; background: var(--signal-green); border-radius: 50%; border: 2px solid #000;">
+                            </div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--signal-green);">Step 2: BUILD
+                            </h3>
+                            <p style="font-size: 14px; margin-bottom: 4px;">Co-lead with Varsity's team. Production
+                                system.</p>
+                            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">
+                                6–12 months → deployed at scale</div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div style="position: relative;">
+                            <div
+                                style="position: absolute; left: -31px; top: 0; width: 12px; height: 12px; background: var(--text-secondary); border-radius: 50%; border: 2px solid #000;">
+                            </div>
+                            <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-secondary);">Step 3:
+                                TRANSITION</h3>
+                            <p style="font-size: 14px; margin-bottom: 4px;">Advisory role. Quarterly reviews.</p>
+                            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);">
+                                Ongoing → Varsity fully self-sufficient</div>
+                        </div>
+                    </div>
+
+                    <ul style="list-style: none; margin-top: 32px;">
+                        <li style="margin-bottom: 8px; font-size: 16px;">• Speed: skip 12+ months of completed research
+                        </li>
+                        <li style="margin-bottom: 8px; font-size: 16px;">• No vendor lock-in: tech is Varsity's</li>
+                        <li style="margin-bottom: 8px; font-size: 16px;">• Knowledge transfer: we train your team</li>
+                    </ul>
+                </div>
+
+                <!-- Right Col: Image -->
+                <div class="col-7-12" style="position: relative;">
+                    <div class="bg-full-image"
+                        style="background-image: url('assets/images/slide_17_server_rack.jpg'); filter: grayscale(30%) contrast(1.1);">
+                    </div>
+                    <div
+                        style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, #080C14 5%, transparent 40%);">
+                    </div>
+                </div>
+
+                <div class="source-footnote">AI engineering benchmarks, Architecture B specifications</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 18: The Ask === -->
+        <div class="slide" id="slide-18">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>THE ASK</span>
+                    <span>ZERO-RISK PILOT</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">THE ASK</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 48px;">One Pilot. Two Events. Zero
+                        Cost.</h2>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+                        <!-- Left: Pilot Structure -->
+                        <div>
+                            <h3 style="font-size: 24px; margin-bottom: 24px; font-weight: 600;">Pilot Structure</h3>
+                            <ul style="list-style: none;">
+                                <li style="margin-bottom: 12px; font-size: 16px;">• Scope: Shadow scoring at 1–2 events.
+                                    AI never touches official results.</li>
+                                <li style="margin-bottom: 12px; font-size: 16px;">• Timeline: 90 days from agreement to
+                                    first deployment</li>
+                                <li style="margin-bottom: 12px; font-size: 16px;">• Varsity investment: 5–10 hours
+                                    liaison time total</li>
+                                <li
+                                    style="margin-bottom: 12px; font-size: 16px; color: var(--signal-green); font-weight: 700;">
+                                    • Cost to Varsity: $0</li>
+                                <li style="margin-bottom: 12px; font-size: 16px;">• Deliverables: Working demo video,
+                                    accuracy comparison, judge feedback, Go/No-Go recommendation</li>
+                            </ul>
+                        </div>
+
+                        <!-- Right: Success Metrics -->
+                        <div>
+                            <h3 style="font-size: 24px; margin-bottom: 24px; font-weight: 600;">Success Metrics</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Target</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Skill detection (F1)</td>
+                                        <td style="color: var(--signal-green);">≥ 0.85</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Deduction agreement</td>
+                                        <td style="color: var(--signal-green);">≥ 0.70</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Safety false positives</td>
+                                        <td style="color: var(--signal-green);">0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Processing latency</td>
+                                        <td>
+                                            <30s /routine</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Judge feedback</td>
+                                        <td>>60% positive</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 32px; font-size: 16px; color: var(--text-secondary); text-align: center;">All
+                        processing on-device. No raw video leaves the venue. Data belongs to Varsity.</p>
+                </div>
+
+                <div class="source-footnote">Standard ML evaluation criteria, privacy consent framework</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 19: The Decision === -->
+        <div class="slide" id="slide-19">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>THE DECISION</span>
+                    <span>THREE PATHS</span>
+                </div>
+
+                <div class="col-1-12 flex-col-center">
+                    <span class="mono-label">THREE PATHS</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 48px;">Define AI Judging in 2026 — Or
+                        Follow Someone Else's Rules.</h2>
+
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; width: 100%; margin-bottom: 48px;">
+                        <!-- Card A -->
+                        <div class="swiss-card" style="border-top: 3px solid var(--alert-red); height: 200px;">
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Do Nothing</h3>
+                            <p style="font-size: 16px; color: var(--text-secondary);">Competitor defines the standard.
+                                Brand erosion. Missed window.</p>
+                        </div>
+
+                        <!-- Card B -->
+                        <div class="swiss-card" style="border-top: 3px solid var(--text-secondary); height: 200px;">
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Build Alone</h3>
+                            <p style="font-size: 16px; color: var(--text-secondary);">$2–5M. 18–24 months. Starting from
+                                zero.</p>
+                        </div>
+
+                        <!-- Card C -->
+                        <div class="swiss-card" style="border-top: 3px solid var(--signal-green); height: 200px;">
+                            <h3 style="font-size: 20px; margin-bottom: 12px;">Partner and Lead</h3>
+                            <p style="font-size: 16px; color: var(--text-secondary);">$0 pilot. 90 days to proof.
+                                Varsity owns everything.</p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Comparison -->
+                    <div style="width: 100%; display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Build Alone -->
+                        <div style="display: flex; align-items: center;">
+                            <span class="mono-label" style="width: 120px; text-align: right; margin-right: 16px;">BUILD
+                                ALONE</span>
+                            <div style="flex-grow: 1; height: 30px; display: flex;">
+                                <div
+                                    style="width: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #FFF;">
+                                    Hire & Research (0-18mo)</div>
+                                <div
+                                    style="width: 17%; background: #475569; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #FFF;">
+                                    MVP</div>
+                                <div style="width: 33%; background: #94A3B8; opacity: 0.2;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Partner -->
+                        <div style="display: flex; align-items: center;">
+                            <span class="mono-label"
+                                style="width: 120px; text-align: right; margin-right: 16px; color: var(--signal-green);">PARTNER</span>
+                            <div style="flex-grow: 1; height: 30px; display: flex;">
+                                <div
+                                    style="width: 8%; background: var(--signal-green); display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000; font-weight: bold;">
+                                    Pilot</div>
+                                <div
+                                    style="width: 25%; background: var(--signal-green); opacity: 0.8; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #000;">
+                                    Build</div>
+                                <div
+                                    style="width: 67%; background: var(--signal-green); opacity: 0.6; display: flex; align-items: center; justify-content: flex-start; padding-left: 12px; font-size: 10px; color: #000;">
+                                    Deployed & Owned (12mo+)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Build timeline from AI engineering benchmarks</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 20: Next Step === -->
+        <div class="slide" id="slide-20">
+            <div class="bg-full-image"
+                style="background-image: url('assets/images/slide_01_hero_arena.jpg'); filter: grayscale(40%) contrast(1.1) brightness(0.8);">
+            </div>
+            <div
+                style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(8,12,20,0.75), rgba(8,12,20,0.85));">
+            </div>
+
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="col-1-12"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 205px; height: 100%; position: relative;">
+                    <!-- Logo: Top Centered -->
+                    <img src="assets/images/TrueScore_White.png" alt="TrueScore Logo"
+                        style="width: 140px; margin-bottom: 64px;">
+
+                    <!-- THE CALL TO ACTION: Blue -->
+                    <span class="mono-label"
+                        style="text-align: center; margin-bottom: 24px; color: var(--accent-blue);">THE CALL TO
+                        ACTION</span>
+
+                    <h1
+                        style="font-size: 96px; font-weight: 800; text-align: center; margin-bottom: 24px; line-height: 1.0;">
+                        One Event. Ninety Days.
+                    </h1>
+
+                    <h2
+                        style="font-family: var(--font-primary); font-weight: 300; font-size: 32px; color: var(--text-secondary); text-align: center; margin-bottom: 64px;">
+                        Let the Technology Speak for Itself.
+                    </h2>
+
+                    <!-- Divider -->
+                    <div style="width: 120px; height: 1px; background: rgba(255,255,255,0.2); margin-bottom: 48px;">
+                    </div>
+
+                    <!-- Quote -->
+                    <blockquote
+                        style="font-size: 28px; text-align: center; font-style: italic; color: #fff; margin-bottom: 64px; max-width: 900px; line-height: 1.4;">
+                        "The risk of the pilot is zero. The risk of waiting is not."
+                    </blockquote>
+
+                    <!-- Contact Info Removed -->
+                </div>
+
+                <div
+                    style="position: absolute; bottom: 0; width: 100%; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); padding-bottom: 24px;">
+                    Confidential — Varsity Brands Executive Leadership | February 2026
+                </div>
+            </div>
+        </div>
+
+        <!-- === Controls & Navigation === -->
+        <!-- === Controls & Navigation === -->
+        <div class="controls-layer">
+            <!-- Left: Slide Counter -->
+            <div class="slide-counter" id="slide-number">SLIDE 01 / 20</div>
+
+            <!-- Center: Audio Player -->
+            <div class="audio-player">
+                <button class="control-btn" id="btn-mute" title="Mute/Unmute" style="margin-right: 8px;">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <button class="control-btn" id="btn-play-pause" onclick="togglePlay()" title="Play/Pause">
+                    <i class="fa-solid fa-play" id="icon-play-pause"></i>
+                </button>
+
+                <div class="scrubber-container" id="scrubber-container">
+                    <div class="scrubber-fill" id="scrubber-fill">
+                        <div class="scrubber-thumb"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="controls-right">
+                <!-- Navigation Arrows -->
+                <div class="control-group">
+                    <button class="control-btn" id="btn-prev" onclick="prevSlide()" title="Previous Slide">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button class="control-btn" id="btn-next" onclick="nextSlide()" title="Next Slide">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Navigation Logic
+        let currentSlide = 1;
+        const totalSlides = 20;
+
+        // Audio Logic
+        let audio = new Audio();
+        let isMuted = false;
+        let isPlaying = false;
+        // Map slides to audio files. Slide 1 has no audio.
+        // Map slides to audio files. Slide 1 has no audio.
+        // Paths are relative to index.html location
+        const audioBasePath = 'assets/audio/';
+
+        // Helper to format time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return "00:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function showSlide(n) {
+            // Clamp
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+
+            currentSlide = n;
+
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+
+            // Show target slide
+            const slide = document.getElementById('slide-' + n);
+            if (slide) slide.classList.add('active');
+
+            // Update Counter
+            const counter = document.getElementById('slide-number');
+            if (counter) counter.innerText = `SLIDE ${String(n).padStart(2, '0')} / 20`;
+
+            // Handle Audio
+            loadAndPlayAudio(n);
+        }
+
+        function loadAndPlayAudio(slideNum) {
+            // Stop existing
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            updatePlayBtn();
+            updateProgress(0, 0);
+
+            // Construct path
+            // Slide 1 has no audio
+            if (slideNum === 1) {
+                // No audio for slide 1
+                // Document.getElementById('time-display') removed
+                document.getElementById('scrubber-container').style.opacity = "0.5";
+                document.getElementById('scrubber-container').style.pointerEvents = "none";
+                return;
+            }
+
+            // Enable scrubber
+            document.getElementById('scrubber-container').style.opacity = "1";
+            document.getElementById('scrubber-container').style.pointerEvents = "auto";
+
+            const filename = `Slide_${String(slideNum).padStart(2, '0')}.mp3`;
+            audio.src = audioBasePath + filename;
+            audio.load();
+
+            // Auto-play if not muted (and browser allows)
+            // Note: Browsers block autoplay often. We'll try. 
+            // If muted, we can play. If not, we might get blocked until interaction.
+            // Since user likely clicked "Next", interaction exists.
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    isPlaying = true;
+                    updatePlayBtn();
+                }).catch(error => {
+                    console.log("Autoplay prevented:", error);
+                    isPlaying = false;
+                    updatePlayBtn();
+                });
+            }
+        }
+
+        function togglePlay() {
+            if (currentSlide === 1 && !audio.src) return;
+
+            if (audio.paused) {
+                audio.play();
+                isPlaying = true;
+            } else {
+                audio.pause();
+                isPlaying = false;
+            }
+            updatePlayBtn();
+        }
+
+        function updatePlayBtn() {
+            const icon = document.getElementById('icon-play-pause');
+            if (audio.paused) {
+                icon.className = 'fa-solid fa-play';
+            } else {
+                icon.className = 'fa-solid fa-pause';
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            audio.muted = isMuted;
+            const icon = document.querySelector('#btn-mute i');
+            if (isMuted) {
+                icon.className = 'fa-solid fa-volume-xmark';
+                icon.style.color = 'var(--alert-red)';
+            } else {
+                icon.className = 'fa-solid fa-volume-high';
+                icon.style.color = 'inherit';
+            }
+        }
+
+        // Scrubber & Time Logic
+        audio.addEventListener('timeupdate', () => {
+            const current = audio.currentTime;
+            const duration = audio.duration;
+            updateProgress(current, duration);
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            updateProgress(0, audio.duration);
+        });
+
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            updatePlayBtn();
+        });
+
+        function updateProgress(current, duration) {
+            const fill = document.getElementById('scrubber-fill');
+
+            const percent = (current / duration) * 100 || 0;
+            fill.style.width = `${percent}%`;
+        }
+
+        // Scrubber Click
+        const scrubberContainer = document.getElementById('scrubber-container');
+        scrubberContainer.addEventListener('click', (e) => {
+            if (!audio.src || currentSlide === 1) return;
+
+            const rect = scrubberContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const percent = clickX / width;
+
+            if (audio.duration) {
+                audio.currentTime = percent * audio.duration;
+            }
+        });
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) showSlide(currentSlide - 1);
+        }
+
+        // Event Listeners
+        const muteBtn = document.getElementById('btn-mute');
+        if (muteBtn) muteBtn.addEventListener('click', toggleMute);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            else if (e.key === 'ArrowLeft') prevSlide();
+            else if (e.key === ' ') {
+                e.preventDefault(); // Prevent scroll
+                togglePlay();
+            }
+        });
+
+        // Init
+        // Initialize audio muted state based on variable (false by default)
+        audio.muted = isMuted;
+        showSlide(1);
+    </script>
+
+</body>
+
+</html>
