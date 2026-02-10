@@ -1,0 +1,3149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=864, initial-scale=1.0">
+    <title>TrueScore CTO Technical Architecture</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* 1. CSS Variables & Reset */
+        :root {
+            --bg-color: #080C14;
+            --body-bg: #050505;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --accent-blue: #3B82F6;
+            --signal-green: #10B981;
+            --alert-red: #EF4444;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --grid-line-color: rgba(255, 255, 255, 0.03);
+
+            --font-manrope: 'Manrope', sans-serif;
+            --font-inter: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: var(--font-inter);
+            color: var(--text-primary);
+        }
+
+        /* 2. Presentation Canvas */
+        #presentation-container {
+            width: 1280px;
+            height: 864px;
+            /* Increased by 20% from 720px */
+            background-color: var(--bg-color);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            /* Hidden by default */
+            padding: 48px;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        /* 3. Grid System */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: auto 1fr auto;
+            gap: 24px;
+            height: 100%;
+            width: 100%;
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            padding: 0 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .grid-line {
+            border-right: 1px solid var(--grid-line-color);
+            height: 100%;
+        }
+
+        /* 4. Typography & Components */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-manrope);
+        }
+
+        .mega-title {
+            font-size: 100px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.0;
+            color: var(--text-primary);
+        }
+
+        .slide-title {
+            font-size: 64px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+        }
+
+        .sub-header {
+            font-size: 28px;
+            font-family: var(--font-manrope);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        p,
+        li {
+            font-size: 20px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .mono-label {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-blue);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .big-number {
+            font-family: var(--font-manrope);
+            font-size: 100px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            line-height: 1.0;
+        }
+
+        .big-number-label {
+            font-family: var(--font-inter);
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .swiss-card {
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .swiss-card h3 {
+            font-size: 24px;
+            color: var(--text-primary);
+            font-family: var(--font-manrope);
+            font-weight: 600;
+        }
+
+        .meta-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 0;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            height: 30px;
+        }
+
+        .source-footnote {
+            grid-column: 1 / -1;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: auto;
+            padding-top: 12px;
+        }
+
+        /* 5. Utility Classes */
+        .col-1-6 {
+            grid-column: 1 / 7;
+        }
+
+        .col-7-12 {
+            grid-column: 7 / 13;
+        }
+
+        .col-1-12 {
+            grid-column: 1 / 13;
+        }
+
+        .flex-col-center {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .bg-full-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+
+        .overlay-dark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 12, 20, 0.65);
+            z-index: 1;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-inter);
+        }
+
+        th {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
+            text-align: left;
+        }
+
+        td {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Navigation & Controls */
+        .controls-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            /* Slightly taller for clickability */
+            background: #0D1117;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            /* Space between counter (left) and buttons (right) */
+            padding: 0 32px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .slide-counter {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .control-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Audio Player Styles */
+        .audio-player {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 100%;
+            width: 400px;
+            /* Fixed width for stability */
+            justify-content: center;
+        }
+
+        .scrubber-container {
+            flex-grow: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Hit area for easier clicking */
+        .scrubber-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .scrubber-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--accent-blue);
+            border-radius: 2px;
+            position: relative;
+            pointer-events: none;
+            /* Let clicks pass to container */
+        }
+
+        .scrubber-thumb {
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            transition: transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .scrubber-container:hover .scrubber-thumb {
+            transform: translateY(-50%) scale(1);
+        }
+
+        .time-display {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            width: 80px;
+            text-align: right;
+        }
+
+        /* Diagram Styles */
+        .diagram-box {
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 16px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="presentation-container">
+
+        <!-- === SLIDE 1: Title === -->
+        <div class="slide active" id="slide-1">
+            <div class="bg-full-image"
+                style="background-image: url('assets/images/_slide_id_slide_1_homepage_hero_202601.jpeg'); filter: grayscale(80%) contrast(1.2);">
+            </div>
+            <div class="overlay-dark"></div>
+
+            <div
+                style="position: relative; z-index: 2; height: 100%; display: grid; grid-template-rows: 1fr auto; padding: 0 48px;">
+                <img src="assets/images/TrueScore_White.png"
+                    style="width: 120px; position: absolute; top: 48px; left: 48px; opacity: 0.8;" alt="TrueScore Logo">
+
+                <div style="grid-column: 1 / -1; align-self: end; padding-bottom: 80px; margin-left: 8.33%;">
+                    <!-- aligned to col 2 -->
+                    <h1 class="mega-title" style="margin-bottom: 16px;">TRUESCORE<br>TECHNICAL<br>ARCHITECTURE</h1>
+                    <p
+                        style="font-family: var(--font-inter); font-weight: 300; font-size: 24px; color: var(--text-secondary);">
+                        Implementation Plan & Engineering Roadmap</p>
+                </div>
+
+                <div
+                    style="font-family: var(--font-mono); font-size: 11px; color: #475569; position: absolute; bottom: 48px; width: 100%; text-align: center;">
+                    Confidential — Prepared for Varsity Brands Engineering Leadership | February 2026
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 2: What We're Building === -->
+        <div class="slide" id="slide-2">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>VISION</span>
+                    <span>THE CO-PILOT CONCEPT</span>
+                </div>
+
+                <!-- Left Col -->
+                <div class="col-1-6 flex-col-center">
+                    <span class="mono-label">THE CO-PILOT CONCEPT</span>
+                    <h2 style="font-size: 44px; font-weight: 800; color: white; margin-bottom: 32px;">AI Handles the
+                        Objective. Judges Handle the Art.</h2>
+                    <ul class="swiss-list" style="list-style: none;">
+                        <li style="margin-bottom: 24px; padding-left: 20px; border-left: 2px solid var(--accent-blue);">
+                            <strong style="color: white;">Real-Time Path (<100ms):< /strong> AI counts rotations,
+                                    measures angles, detects positions — live assistance to judges during routine
+                        </li>
+                        <li style="margin-bottom: 24px; padding-left: 20px; border-left: 2px solid var(--accent-blue);">
+                            <strong style="color: white;">Batch Path (~2.5min):</strong> Detailed analysis, video clips,
+                            skeleton overlays — delivered to coaches and parents post-routine
+                        </li>
+                        <li style="padding-left: 20px; border-left: 2px solid var(--accent-blue);">
+                            <strong style="color: white;">Human Authority:</strong> Judge remains the decision-maker. AI
+                            is advisory. Judge remains liable.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Right Col Diagram -->
+                <div class="col-7-12 flex-col-center" style="position: relative;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 24px; width: 100%;">
+                        <div class="diagram-box" style="width: 200px;">AI PIPELINE</div>
+                        <div style="height: 40px; border-left: 2px solid var(--text-secondary);"></div>
+
+                        <div style="display: flex; gap: 48px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                                <div class="diagram-box" style="width: 120px;">REAL TIME</div>
+                                <span class="mono-label"
+                                    style="font-size: 10px; color: var(--signal-green);">&lt;100ms</span>
+                                <div style="height: 30px; border-left: 2px solid var(--text-secondary);"></div>
+                                <div class="diagram-box" style="width: 120px;">JUDGE TABLET</div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                                <div class="diagram-box" style="width: 120px;">BATCH</div>
+                                <span class="mono-label" style="font-size: 10px;">~2.5min</span>
+                                <div style="height: 30px; border-left: 2px solid var(--text-secondary);"></div>
+                                <div class="diagram-box" style="width: 120px;">COACH APP</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="diagram-box"
+                        style="margin-top: 48px; width: 100%; text-align: left; border-color: rgba(255,255,255,0.1);">
+                        <strong style="color: var(--accent-blue);">Whisper Mode:</strong> AI suggestions appear as
+                        subtle overlays. Judge can accept, modify, or ignore.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 3: The Four Binding Constraints === -->
+        <div class="slide" id="slide-3">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>CONSTRAINTS</span>
+                    <span>ARCHITECTURE DRIVERS</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">ARCHITECTURE DRIVERS</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">These Four Constraints Drive
+                        Every Design Decision</h2>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+                        <!-- Card 1 -->
+                        <div class="swiss-card">
+                            <span class="mono-label">LATENCY</span>
+                            <div class="big-number" style="font-size: 60px;">&lt;200ms</div>
+                            <p style="font-size: 16px;">Real-time judge assistance requires end-to-end latency under
+                                200ms. Camera → AI → tablet must complete within one human reaction time.</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="swiss-card">
+                            <span class="mono-label">EXPLAINABILITY</span>
+                            <div class="big-number" style="font-size: 60px;">Level 4</div>
+                            <p style="font-size: 16px;">Every AI decision must be explainable with video evidence.
+                                Skeleton overlay, angle measurements, clip extraction. "Because the AI said so" is not
+                                acceptable.</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="swiss-card">
+                            <span class="mono-label">GLOBAL SHUTTER</span>
+                            <div class="big-number" style="font-size: 60px;">0.5ms</div>
+                            <p style="font-size: 16px;">Tumbling athletes move at 1000°/sec. Rolling shutter cameras
+                                introduce 15-25% accuracy loss. Global shutter (0.5ms exposure) is non-negotiable.</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="swiss-card">
+                            <span class="mono-label">SCORING WINDOW</span>
+                            <div class="big-number" style="font-size: 60px;">60-90s</div>
+                            <p style="font-size: 16px;">Routine ends → score required in 60-90 seconds. All processing
+                                must complete within this window or judges fall behind.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Constraints derived from competition operations research, camera hardware
+                    analysis, judge workflow interviews</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 4: The Technical Challenge === -->
+        <div class="slide" id="slide-4">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>CHALLENGE</span>
+                    <span>WHY THIS IS HARD</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">WHY THIS IS HARD</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 32px;">Cheerleading Is Harder Than
+                        Olympic Gymnastics</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dimension</th>
+                                <th>Gymnastics</th>
+                                <th>Cheerleading</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Athletes tracked</td>
+                                <td>1</td>
+                                <td>4–20</td>
+                            </tr>
+                            <tr>
+                                <td>Skills per minute</td>
+                                <td>~20</td>
+                                <td>~60</td>
+                            </tr>
+                            <tr>
+                                <td>Occlusion complexity</td>
+                                <td>Low</td>
+                                <td>High (pyramids, lifts)</td>
+                            </tr>
+                            <tr>
+                                <td>Existing training data</td>
+                                <td>FIG/Fujitsu datasets</td>
+                                <td><strong>None</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Commercial systems</td>
+                                <td>Fujitsu JSS ($10M+)</td>
+                                <td><strong>None exist</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-7-12"
+                    style="display: flex; flex-direction: column; justify-content: center; gap: 32px;">
+                    <div style="border-left: 2px solid var(--accent-blue); padding-left: 24px;">
+                        <div class="big-number" style="font-size: 80px;">20</div>
+                        <div class="big-number-label">Athletes in a stunt group</div>
+                    </div>
+                    <div style="border-left: 2px solid var(--accent-blue); padding-left: 24px;">
+                        <div class="big-number" style="font-size: 80px;">60</div>
+                        <div class="big-number-label">Skills per minute to track</div>
+                    </div>
+                    <div style="border-left: 2px solid var(--alert-red); padding-left: 24px;">
+                        <div class="big-number" style="font-size: 80px; color: var(--alert-red);">0</div>
+                        <div class="big-number-label">Labeled cheerleading datasets</div>
+                    </div>
+
+                    <div class="swiss-card" style="border-color: var(--alert-red);">
+                        <strong style="color: var(--alert-red);">Cold Start Problem:</strong> No public training data
+                        exists. We must build the dataset as we build the system.
+                    </div>
+                </div>
+
+                <div class="source-footnote">Fujitsu FIG partnership analysis, competitive technology research</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 5: Why Off-the-Shelf Fails === -->
+        <div class="slide" id="slide-5">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>MARKET ANALYSIS</span>
+                    <span>WHY WE BUILD</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">WHY WE BUILD</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 24px;">No Existing System Meets Our
+                        Constraints</h2>
+
+                    <table style="margin-bottom: 40px;">
+                        <thead>
+                            <tr>
+                                <th>System</th>
+                                <th>Operator</th>
+                                <th>Sport</th>
+                                <th>Latency</th>
+                                <th>Multi-Athlete</th>
+                                <th>Cheer Rules</th>
+                                <th>Verdict</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Fujitsu JSS</td>
+                                <td>FIG</td>
+                                <td>Gymnastics</td>
+                                <td>&lt;100ms</td>
+                                <td>❌ 1 only</td>
+                                <td>❌ None</td>
+                                <td>Single-athlete</td>
+                            </tr>
+                            <tr>
+                                <td>Hawk-Eye Live</td>
+                                <td>Sony</td>
+                                <td>Tennis</td>
+                                <td>&lt;50ms</td>
+                                <td>❌ N/A</td>
+                                <td>❌ None</td>
+                                <td>Line calls only</td>
+                            </tr>
+                            <tr>
+                                <td>FINA AI</td>
+                                <td>Dev</td>
+                                <td>Diving</td>
+                                <td>~500ms</td>
+                                <td>❌ 1 only</td>
+                                <td>❌ None</td>
+                                <td>Single-athlete</td>
+                            </tr>
+                            <tr>
+                                <td>Next Gen Stats</td>
+                                <td>AWS</td>
+                                <td>NFL</td>
+                                <td>Real-time</td>
+                                <td>✅ 22</td>
+                                <td>❌ None</td>
+                                <td>No judging</td>
+                            </tr>
+                            <tr>
+                                <td>Google MediaPipe</td>
+                                <td>Open Source</td>
+                                <td>General</td>
+                                <td>~30ms</td>
+                                <td>⚠️ Limited</td>
+                                <td>❌ None</td>
+                                <td>Not production-grade</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                        <div class="swiss-card">
+                            <span class="mono-label">FUJITSU</span>
+                            <ul class="swiss-list" style="padding: 0; margin: 0;">
+                                <li style="font-size: 16px;">Single-athlete architecture</li>
+                                <li style="font-size: 16px;">Cannot track stunts/pyramids</li>
+                                <li style="font-size: 16px;">FIG exclusive license</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <span class="mono-label">HAWK-EYE</span>
+                            <ul class="swiss-list" style="padding: 0; margin: 0;">
+                                <li style="font-size: 16px;">Line calls, not body tracking</li>
+                                <li style="font-size: 16px;">Different problem domain</li>
+                                <li style="font-size: 16px;">No USASF rule engine</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card" style="border-color: var(--signal-green);">
+                            <span class="mono-label" style="color: var(--signal-green);">THE GAP</span>
+                            <ul class="swiss-list" style="padding: 0; margin: 0;">
+                                <li style="font-size: 16px; border-color: var(--signal-green);">No multi-person sports
+                                    judging AI exists</li>
+                                <li style="font-size: 16px; border-color: var(--signal-green);">This IS the opportunity
+                                </li>
+                                <li style="font-size: 16px; border-color: var(--signal-green);">First mover defines the
+                                    rules</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Competitive technology analysis, vendor evaluations, academic literature
+                    review</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 6: Three Architecture Options === -->
+        <div class="slide" id="slide-6">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>OPTIONS</span>
+                    <span>THREE PATHS</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">THREE PATHS</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">Architecture Options: Trade-offs
+                        in Cost, Accuracy, and Latency</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dimension</th>
+                                <th>Architecture A</th>
+                                <th>Architecture B</th>
+                                <th>Architecture C</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Name</strong></td>
+                                <td>Mobile-First</td>
+                                <td>Edge-Optimized</td>
+                                <td>Enterprise</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cameras</strong></td>
+                                <td>Smartphones</td>
+                                <td>4x Industrial (global shutter)</td>
+                                <td>8x 4K Industrial</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Processing</strong></td>
+                                <td>Cloud (AWS/GCP)</td>
+                                <td>Edge (Jetson Orin NX)</td>
+                                <td>On-premise (RTX cluster)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Real-time latency</strong></td>
+                                <td>❌ 7–11 min</td>
+                                <td>✅ &lt;100ms</td>
+                                <td>✅ &lt;150ms</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Multi-athlete</strong></td>
+                                <td>10–15 (limited)</td>
+                                <td>20+</td>
+                                <td>20+ (3D recon)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Accuracy (est.)</strong></td>
+                                <td>70–80%</td>
+                                <td>85–92%</td>
+                                <td>92–97%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hardware cost</strong></td>
+                                <td>$120–$2K</td>
+                                <td><strong>$18K</strong></td>
+                                <td>$220K</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Use case</strong></td>
+                                <td>Training, Shadow Mode</td>
+                                <td>Production events</td>
+                                <td>Championships</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display: flex; gap: 24px; justify-content: center; margin-top: 16px;">
+                        <div
+                            style="padding: 12px 24px; border: 1px solid var(--accent-blue); border-radius: 40px; color: var(--accent-blue); font-weight: 600;">
+                            A: DATA COLLECTION</div>
+                        <div
+                            style="padding: 12px 24px; background: var(--signal-green); border-radius: 40px; color: black; font-weight: 800;">
+                            B: RECOMMENDED</div>
+                        <div
+                            style="padding: 12px 24px; border: 1px solid var(--text-secondary); border-radius: 40px; color: var(--text-secondary); font-weight: 600;">
+                            C: FUTURE STATE</div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Architecture comparison matrix, hardware cost analysis, competitive
+                    benchmarks</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 7: Architecture A === -->
+        <div class="slide" id="slide-7">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>ARCHITECTURE A</span>
+                    <span>MOBILE-FIRST (BASELINE)</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">MOBILE-FIRST</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">Low Cost, High Latency — For
+                        Data Collection</h2>
+
+                    <table style="margin-bottom: 24px;">
+                        <tr>
+                            <td>Cameras</td>
+                            <td>Consumer smartphones</td>
+                        </tr>
+                        <tr>
+                            <td>Processing</td>
+                            <td>Cloud (AWS Lambda)</td>
+                        </tr>
+                        <tr>
+                            <td>Latency</td>
+                            <td>7–11 minutes (batch)</td>
+                        </tr>
+                        <tr>
+                            <td>Cost</td>
+                            <td>$120–$2,000</td>
+                        </tr>
+                    </table>
+
+                    <strong style="display: block; margin-bottom: 12px; color: white;">Use Cases:</strong>
+                    <ul class="swiss-list" style="margin: 0; padding: 0;">
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--accent-blue); padding-left: 12px; margin-bottom: 8px;">
+                            Shadow Mode Data Collection</li>
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--accent-blue); padding-left: 12px; margin-bottom: 8px;">
+                            Training/Practice Feedback</li>
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--accent-blue); padding-left: 12px; margin-bottom: 8px;">
+                            Market Validation</li>
+                    </ul>
+                </div>
+
+                <div class="col-7-12 flex-col-center">
+                    <div class="diagram-box" style="font-size: 24px;">
+                        📱 → ☁️ → 📊<br>
+                        <span style="font-size: 16px; color: var(--text-secondary);">Smartphone → Cloud Processing →
+                            Report (7-11 min)</span>
+                    </div>
+
+                    <div class="swiss-card" style="margin-top: 32px; border-color: var(--accent-blue);">
+                        <strong style="color: var(--accent-blue);">Primary Value:</strong> Every routine processed
+                        builds the training dataset. This is the data flywheel.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 8: Architecture B === -->
+        <div class="slide" id="slide-8">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>ARCHITECTURE B</span>
+                    <span>EDGE-OPTIMIZED (RECOMMENDED)</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">EDGE-OPTIMIZED</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">Real-Time Capable — The
+                        Production Workhorse</h2>
+
+                    <table style="margin-bottom: 24px;">
+                        <tr>
+                            <td>Cameras</td>
+                            <td>4x Basler ace 2 Pro (global shutter)</td>
+                        </tr>
+                        <tr>
+                            <td>Processing</td>
+                            <td>Edge: 2x Jetson Orin NX</td>
+                        </tr>
+                        <tr>
+                            <td>Real-time Latency</td>
+                            <td>&lt;100ms (68ms typical)</td>
+                        </tr>
+                        <tr>
+                            <td>Kit Cost</td>
+                            <td><strong>$18,000</strong></td>
+                        </tr>
+                    </table>
+
+                    <strong style="display: block; margin-bottom: 12px; color: white;">Autonomy Support:</strong>
+                    <ul class="swiss-list" style="margin: 0; padding: 0;">
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--signal-green); padding-left: 12px; margin-bottom: 8px;">
+                            ✅ Shadow Mode & Whisper Mode</li>
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--signal-green); padding-left: 12px; margin-bottom: 8px;">
+                            ✅ Validate Mode & Co-Pilot Mode</li>
+                    </ul>
+                </div>
+
+                <div class="col-7-12 flex-col-center">
+                    <div class="diagram-box" style="font-size: 24px;">
+                        📹×4 → ⚡ → 📱 + 📊<br>
+                        <span style="font-size: 16px; color: var(--text-secondary);">4 Cameras → Edge AI → Judge Tablet
+                            (&lt;100ms)</span>
+                    </div>
+
+                    <div class="swiss-card" style="margin-top: 32px; border-color: var(--signal-green);">
+                        <strong style="color: var(--signal-green);">Continuous Data Collection:</strong> Every
+                        production event adds to the training dataset. Shadow Mode runs parallel to live scoring.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 9: Architecture C === -->
+        <div class="slide" id="slide-9">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>ARCHITECTURE C</span>
+                    <span>ENTERPRISE (OVERKILL)</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">ENTERPRISE</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">Maximum Accuracy — For
+                        Championships & Broadcast</h2>
+
+                    <table style="margin-bottom: 24px;">
+                        <tr>
+                            <td>Cameras</td>
+                            <td>8x FLIR Blackfly S (4K)</td>
+                        </tr>
+                        <tr>
+                            <td>Processing</td>
+                            <td>On-premise: RTX 4090 cluster</td>
+                        </tr>
+                        <tr>
+                            <td>3D Reconstruction</td>
+                            <td>Yes (8-camera triangulation)</td>
+                        </tr>
+                        <tr>
+                            <td>Venue Cost</td>
+                            <td><strong>$220,000</strong></td>
+                        </tr>
+                    </table>
+
+                    <strong style="display: block; margin-bottom: 12px; color: white;">Use Cases:</strong>
+                    <ul class="swiss-list" style="margin: 0; padding: 0;">
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--text-secondary); padding-left: 12px; margin-bottom: 8px;">
+                            National Championships</li>
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--text-secondary); padding-left: 12px; margin-bottom: 8px;">
+                            Broadcast Integration</li>
+                    </ul>
+                </div>
+
+                <div class="col-7-12 flex-col-center">
+                    <div class="diagram-box" style="font-size: 24px;">
+                        📹×8 → 🖥️ → 📺 + ⚖️<br>
+                        <span style="font-size: 16px; color: var(--text-secondary);">8 Cameras → RTX Cluster → Broadcast
+                            + Autopilot judging</span>
+                    </div>
+
+                    <div class="swiss-card" style="margin-top: 32px; border-color: var(--text-secondary);">
+                        <strong>Future State:</strong> Permanent venue installation. Deploy after Architecture B proves
+                        the model.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 10: Why Architecture B === -->
+        <div class="slide" id="slide-10">
+            <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+            </div>
+            <div class="grid-layout" style="position: relative; z-index: 1;">
+                <div class="meta-header">
+                    <span>DECISION</span>
+                    <span>WHY ARCHITECTURE B</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">WHY ARCHITECTURE B</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 24px;">Meets Every Constraint. Enables
+                        the Data Flywheel.</h2>
+
+                    <table style="margin-bottom: 32px;">
+                        <thead>
+                            <tr>
+                                <th>Constraint</th>
+                                <th>Architecture A</th>
+                                <th>Architecture B</th>
+                                <th>Architecture C</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>&lt;200ms real-time</td>
+                                <td>❌ 7-11 min</td>
+                                <td>✅ 68ms</td>
+                                <td>✅ &lt;150ms</td>
+                            </tr>
+                            <tr>
+                                <td>Level 4 explainability</td>
+                                <td>⚠️ Limited</td>
+                                <td>✅ Full</td>
+                                <td>✅ Full</td>
+                            </tr>
+                            <tr>
+                                <td>Global shutter</td>
+                                <td>❌ Rolling</td>
+                                <td>✅ Global</td>
+                                <td>✅ Global</td>
+                            </tr>
+                            <tr>
+                                <td>Scalable deployment</td>
+                                <td>✅ Very High</td>
+                                <td>✅ Kit-based</td>
+                                <td>❌ Venue-specific</td>
+                            </tr>
+                            <tr>
+                                <td>Phased autonomy</td>
+                                <td>Shadow only</td>
+                                <td>Shadow → Co-Pilot</td>
+                                <td>Shadow → Autopilot</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                        <div class="swiss-card">
+                            <span class="mono-label">MEETS CONSTRAINTS</span>
+                            <ul class="swiss-list" style="padding: 0; margin: 0;">
+                                <li style="font-size: 16px;">Real-time latency: 68ms</li>
+                                <li style="font-size: 16px;">Full explainability stack</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <span class="mono-label">ENABLES DATA FLYWHEEL</span>
+                            <ul class="swiss-list" style="padding: 0; margin: 0;">
+                                <li style="font-size: 16px;">Every event = training data</li>
+                                <li style="font-size: 16px;">Shadow Mode runs parallel</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <span class="mono-label">SCALABLE ECONOMICS</span>
+                            <ul class="swiss-list" style="padding: 0; margin: 0;">
+                                <li style="font-size: 16px;">$18K per kit</li>
+                                <li style="font-size: 16px;">Hardware ROI in ~75 events</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="source-footnote">Architecture decision matrix, constraint analysis, cost modeling</div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 11: Architecture B System Diagram === -->
+        <div class="slide" id="slide-11">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>SYSTEM DIAGRAM</span>
+                    <span>ARCHITECTURE B</span>
+                </div>
+                <div class="col-1-12">
+                    <span class="mono-label">ARCHITECTURE B</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 16px;">End-to-End System Flow</h2>
+
+                    <!-- Diagram Container -->
+                    <div
+                        style="border: 1px solid var(--border-color); padding: 20px; background: rgba(255,255,255,0.02); margin-bottom: 16px; display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Capture Layer -->
+                        <div
+                            style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; text-align: center;">
+                            <div class="mono-label" style="margin-bottom: 12px; color: var(--text-secondary);">CAPTURE
+                                LAYER
+                            </div>
+                            <div style="display: flex; justify-content: space-around; margin-bottom: 12px;">
+                                <div><i class="fa-solid fa-video"></i> Front Left<br><span
+                                        style="font-size: 12px; color: var(--text-secondary);">Basler ace 2</span></div>
+                                <div><i class="fa-solid fa-video"></i> Front Right<br><span
+                                        style="font-size: 12px; color: var(--text-secondary);">Basler ace 2</span></div>
+                                <div><i class="fa-solid fa-video"></i> Back Left<br><span
+                                        style="font-size: 12px; color: var(--text-secondary);">Basler ace 2</span></div>
+                                <div><i class="fa-solid fa-video"></i> Back Right<br><span
+                                        style="font-size: 12px; color: var(--text-secondary);">Basler ace 2</span></div>
+                            </div>
+                            <i class="fa-solid fa-arrow-down" style="color: var(--text-secondary);"></i>
+                            <div
+                                style="margin-top: 12px; border: 1px solid var(--accent-blue); display: inline-block; padding: 4px 12px; border-radius: 4px; color: var(--accent-blue); font-size: 14px;">
+                                PTP Switch (&lt;1μs sync)</div>
+                        </div>
+
+                        <!-- Compute Layer -->
+                        <div
+                            style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; text-align: center;">
+                            <div class="mono-label" style="margin-bottom: 12px; color: var(--text-secondary);">COMPUTE
+                                LAYER
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 32px; align-items: flex-start;">
+                                <div
+                                    style="border: 1px solid var(--signal-green); padding: 12px; border-radius: 4px; width: 180px;">
+                                    <strong>Jetson Orin NX</strong><br>
+                                    <span style="font-size: 11px; color: var(--signal-green);">REAL-TIME AI</span>
+                                </div>
+                                <div
+                                    style="border: 1px solid var(--text-secondary); padding: 12px; border-radius: 4px; width: 180px;">
+                                    <strong>Jetson Orin NX</strong><br>
+                                    <span style="font-size: 11px; color: var(--text-secondary);">RECORDING +
+                                        BATCH</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 12px; font-size: 14px;"><i class="fa-solid fa-arrow-down"
+                                    style="color: var(--text-secondary);"></i><br>NAS Storage (48TB RAID)</div>
+                        </div>
+
+                        <!-- Output Layer -->
+                        <div style="text-align: center;">
+                            <div class="mono-label" style="margin-bottom: 12px; color: var(--text-secondary);">OUTPUT
+                                LAYER
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 32px;">
+                                <div
+                                    style="background: rgba(16, 185, 129, 0.1); padding: 12px; border-radius: 4px; width: 180px;">
+                                    <strong>JUDGE TABLET</strong><br>
+                                    <span style="font-size: 11px;">&lt;100ms Latency</span>
+                                </div>
+                                <div
+                                    style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 4px; width: 180px;">
+                                    <strong>COACH APP</strong><br>
+                                    <span style="font-size: 11px;">~2.5 min Latency</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cost Table -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Qty</th>
+                                <th>Unit Cost</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Basler ace 2 Pro cameras</td>
+                                <td>4</td>
+                                <td>$850</td>
+                                <td>$3,400</td>
+                            </tr>
+                            <tr>
+                                <td>Jetson Orin NX + carrier</td>
+                                <td>2</td>
+                                <td>$800</td>
+                                <td>$1,600</td>
+                            </tr>
+                            <tr>
+                                <td>PTP Switch (Cisco IE4000)</td>
+                                <td>1</td>
+                                <td>$2,500</td>
+                                <td>$2,500</td>
+                            </tr>
+                            <tr>
+                                <td>NAS + Storage</td>
+                                <td>1</td>
+                                <td>$1,500</td>
+                                <td>$1,500</td>
+                            </tr>
+                            <tr>
+                                <td>Tablets, mounts, cables</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>$9,000</td>
+                            </tr>
+                            <tr style="font-weight: 800; border-top: 2px solid var(--border-color);">
+                                <td>Total</td>
+                                <td></td>
+                                <td></td>
+                                <td>$18,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 12: The Dual-Pipeline Approach === -->
+        <div class="slide" id="slide-12">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>DUAL PIPELINE</span>
+                    <span>REAL-TIME + BATCH</span>
+                </div>
+
+                <div class="col-1-6" style="border-right: 1px solid var(--border-color); padding-right: 24px;">
+                    <span class="mono-label">REAL-TIME PATH</span>
+                    <div class="mega-title" style="color: var(--signal-green);">&lt;100ms</div>
+                    <div class="sub-header" style="margin-top: 8px;">Real-Time Assistance</div>
+
+                    <ul class="swiss-list" style="margin-top: 32px;">
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">YOLOv8-Pose</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">Skeleton extraction
+                                (16ms)</span>
+                        </li>
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">ByteTrack</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">Identity tracking (2ms)</span>
+                        </li>
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">ActionCLIP</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">Skill classification
+                                (30ms)</span>
+                        </li>
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">UI Render</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">Overlay generation
+                                (10ms)</span>
+                        </li>
+                    </ul>
+
+                    <div
+                        style="margin-top: auto; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 4px;">
+                        <strong style="color: var(--signal-green);">OUTPUT:</strong> Skeleton overlay, skill detection,
+                        deduction flags.
+                    </div>
+                </div>
+
+                <div class="col-7-12" style="padding-left: 24px;">
+                    <span class="mono-label">BATCH PATH</span>
+                    <div class="mega-title" style="color: var(--text-secondary);">~2.5m</div>
+                    <div class="sub-header" style="margin-top: 8px;">Deep Analysis</div>
+
+                    <ul class="swiss-list" style="margin-top: 32px;">
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">Full Ingest</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">High bitrate video
+                                capture</span>
+                        </li>
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">SlowFast R101</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">High-accuracy analysis</span>
+                        </li>
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">Multi-View Fusion</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">3D reconstruction</span>
+                        </li>
+                        <li style="margin-bottom: 16px;">
+                            <strong style="color: white; display: block;">Report Generation</strong>
+                            <span style="font-size: 16px; color: var(--text-secondary);">PDF & Video package</span>
+                        </li>
+                    </ul>
+
+                    <div
+                        style="margin-top: auto; padding: 16px; background: rgba(255, 255, 255, 0.05); border-radius: 4px;">
+                        <strong>OUTPUT:</strong> Detailed skill breakdown, angle measurements, ground truth comparison.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 13: The Camera Layer === -->
+        <div class="slide" id="slide-13">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>CAMERA LAYER</span>
+                    <span>WHY GLOBAL SHUTTER</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">WHY GLOBAL SHUTTER</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">Rolling Shutter = 15-25%
+                        Accuracy
+                        Loss</h2>
+
+                    <table style="margin-bottom: 24px;">
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th>Consumer (iPhone)</th>
+                                <th>Industrial (Basler)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Shutter type</td>
+                                <td>Rolling</td>
+                                <td><strong>Global</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Sync precision</td>
+                                <td>±50-100ms</td>
+                                <td><strong>&lt;1μs (PTP)</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Motion blur</td>
+                                <td>Significant</td>
+                                <td>Minimal</td>
+                            </tr>
+                            <tr>
+                                <td>Pose Accuracy</td>
+                                <td>75-85% mAP</td>
+                                <td><strong>90-95% mAP</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <ul class="swiss-list">
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--alert-red); padding-left: 12px; margin-bottom: 12px;">
+                            <strong>Rolling Shutter Problem:</strong> Fast rotation = distorted skeleton = wrong angles.
+                        </li>
+                        <li
+                            style="font-size: 16px; border-left: 2px solid var(--signal-green); padding-left: 12px; margin-bottom: 12px;">
+                            <strong>Global Shutter Solution:</strong> All pixels capture simultaneously. No distortion.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-7-12">
+                    <div style="width: 100%; height: 100%; background: #111; position: relative; overflow: hidden;">
+                        <img src="assets/images/_slide_id_slide_7_tech_pipeline_202601.jpeg" alt="Skeleton Overlay"
+                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: grayscale(80%) contrast(1.2);">
+                        <div
+                            style="position: absolute; bottom: 24px; left: 24px; right: 24px; padding: 16px; background: rgba(0,0,0,0.8); border-left: 4px solid var(--accent-blue);">
+                            <strong>Non-negotiable:</strong> Consumer cameras cannot achieve production accuracy for
+                            fast
+                            motion.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 14: The Compute Layer === -->
+        <div class="slide" id="slide-14">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>COMPUTE LAYER</span>
+                    <span>EDGE VS CLOUD</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">EDGE VS CLOUD</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">Why We Process at the Venue</h2>
+
+                    <table style="margin-bottom: 32px;">
+                        <thead>
+                            <tr>
+                                <th>Factor</th>
+                                <th>Cloud</th>
+                                <th>Edge</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Latency</td>
+                                <td>500ms+</td>
+                                <td><strong>&lt;100ms</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Internet Reqd</td>
+                                <td>Yes (Critical)</td>
+                                <td><strong>No</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Privacy</td>
+                                <td>Video in cloud</td>
+                                <td><strong>On-site</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Reliability</td>
+                                <td>VarConnectivity</td>
+                                <td><strong>Independent</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="swiss-card" style="border-color: var(--signal-green);">
+                        <strong style="color: var(--signal-green);">Jetson Orin NX Specs</strong>
+                        <ul class="swiss-list" style="padding: 0; margin-top: 8px;">
+                            <li style="font-size: 14px;">100 TOPS (AI operations)</li>
+                            <li style="font-size: 14px;">8 GB LPDDR5 RAM</li>
+                            <li style="font-size: 14px;">Cost: ~$800 total</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-7-12 flex-col-center">
+                    <span class="mono-label">$/TOPS COST DECAY</span>
+                    <div style="display: flex; align-items: flex-end; height: 300px; gap: 24px; margin-top: 24px;">
+                        <div style="width: 25%;">
+                            <div style="height: 100%; background: var(--alert-red); margin-bottom: 8px;"></div>
+                            <div class="mono-label" style="text-align: center;">2020<br>$19.00</div>
+                        </div>
+                        <div style="width: 25%;">
+                            <div style="height: 31%; background: #FCD34D; margin-bottom: 8px;"></div>
+                            <div class="mono-label" style="text-align: center;">2022<br>$5.99</div>
+                        </div>
+                        <div style="width: 25%;">
+                            <div style="height: 15%; background: var(--accent-blue); margin-bottom: 8px;"></div>
+                            <div class="mono-label" style="text-align: center;">2025<br>$3.00</div>
+                        </div>
+                        <div style="width: 25%;">
+                            <div style="height: 1%; background: var(--signal-green); margin-bottom: 8px;"></div>
+                            <div class="mono-label" style="text-align: center;">2028<br>$0.20</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 32px; font-size: 20px; text-align: center; color: var(--text-secondary);">
+                        Compute is commoditizing. The moat is not in hardware.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 15: The AI Pipeline (Real-Time) === -->
+        <div class="slide" id="slide-15">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>AI PIPELINE</span>
+                    <span>68ms END-TO-END</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">68ms END-TO-END</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">Real-Time AI Pipeline Breakdown
+                    </h2>
+
+                    <!-- Pipeline Flow -->
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 40px;">
+                        <div
+                            style="border: 1px solid var(--border-color); padding: 16px; border-radius: 4px; text-align: center; flex: 1;">
+                            <div class="mono-label">CAMERA</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px;">~10ms</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div
+                            style="border: 1px solid var(--accent-blue); padding: 16px; border-radius: 4px; text-align: center; flex: 1;">
+                            <div class="mono-label" style="color: var(--accent-blue);">YOLOv8-POSE</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px;">16ms</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div
+                            style="border: 1px solid var(--accent-blue); padding: 16px; border-radius: 4px; text-align: center; flex: 1;">
+                            <div class="mono-label" style="color: var(--accent-blue);">BYTETRACK</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px;">2ms</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div
+                            style="border: 1px solid var(--accent-blue); padding: 16px; border-radius: 4px; text-align: center; flex: 1;">
+                            <div class="mono-label" style="color: var(--accent-blue);">ACTIONCLIP</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px;">30ms</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div
+                            style="border: 1px solid var(--signal-green); padding: 16px; border-radius: 4px; text-align: center; flex: 1;">
+                            <div class="mono-label" style="color: var(--signal-green);">JUDGE UI</div>
+                            <div style="color: var(--text-secondary); margin-top: 8px;">10ms</div>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">YOLOv8-POSE</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>17 keypoints</li>
+                                <li>20 athletes tracked</li>
+                                <li>60 fps sustained</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">BYTETRACK</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Identity persistence</li>
+                                <li>Handles occlusion</li>
+                                <li>&lt;2ms per frame</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">ACTIONCLIP</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Zero-shot classification</li>
+                                <li>Text prompt per skill</li>
+                                <li>No training data needed</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card" style="border-color: var(--signal-green);">
+                            <strong style="color: var(--signal-green); margin-bottom: 8px;">JUDGE UI</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Skeleton overlay</li>
+                                <li>Deduction flags</li>
+                                <li>R/Y/G confidence</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 16: The Ground Truth Layer === -->
+        <div class="slide" id="slide-16">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>GROUND TRUTH</span>
+                    <span>THE IP LAYER</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">THE IP LAYER</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 24px;">302-Line Specification for One
+                        Skill</h2>
+
+                    <div style="margin-bottom: 32px;">
+                        <div style="margin-bottom: 16px;">
+                            <span class="big-number">302</span>
+                            <span class="big-number-label">Lines of code for Standing Back Tuck</span>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <span class="big-number">50+</span>
+                            <span class="big-number-label">Skills in initial taxonomy</span>
+                        </div>
+                        <div>
+                            <span class="big-number">17</span>
+                            <span class="big-number-label">Keypoints tracked per athlete</span>
+                        </div>
+                    </div>
+
+                    <ul class="swiss-list">
+                        <li style="margin-bottom: 12px;"><strong>What it defines:</strong> Temporal phases, keypoint
+                            positions, angle thresholds.</li>
+                        <li style="margin-bottom: 12px;"><strong>Why it's IP:</strong> USASF rules interpreted as
+                            executable code. This is the moat.</li>
+                        <li><strong>Extensible:</strong> Add skills by writing new specs. No retraining.</li>
+                    </ul>
+                </div>
+
+                <div class="col-7-12">
+                    <pre
+                        style="background: #1e1e1e; padding: 24px; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; color: #d4d4d4; overflow: hidden; border: 1px solid var(--border-color);">
+<span style="color: #6A9955;"># Standing Back Tuck - Deduction Engine</span>
+<span style="color: #569CD6;">class</span> <span style="color: #4EC9B0;">StandingBackTuck</span>:
+    <span style="color: #569CD6;">def</span> <span style="color: #DCDCAA;">__init__</span>(<span style="color: #9CDCFE;">self</span>):
+        <span style="color: #9CDCFE;">self</span>.phases = [<span style="color: #CE9178;">"PREP"</span>, <span style="color: #CE9178;">"TAKEOFF"</span>, <span style="color: #CE9178;">"FLIGHT"</span>, <span style="color: #CE9178;">"LANDING"</span>]
+        <span style="color: #9CDCFE;">self</span>.flight_rotation_required = <span style="color: #B5CEA8;">360</span>  <span style="color: #6A9955;"># degrees</span>
+        <span style="color: #9CDCFE;">self</span>.knee_tuck_threshold = <span style="color: #B5CEA8;">45</span>  <span style="color: #6A9955;"># degrees</span>
+        
+    <span style="color: #569CD6;">def</span> <span style="color: #DCDCAA;">detect_deductions</span>(<span style="color: #9CDCFE;">self</span>, <span style="color: #9CDCFE;">skeleton_sequence</span>):
+        deductions = []
+        
+        <span style="color: #6A9955;"># Check rotation completion</span>
+        hip_rotation = <span style="color: #9CDCFE;">self</span>.calc_hip_rotation(skeleton_sequence)
+        <span style="color: #C586C0;">if</span> hip_rotation < <span style="color: #B5CEA8;">340</span>:  <span style="color: #6A9955;"># 20° tolerance</span>
+            deductions.append({
+                <span style="color: #CE9178;">"code"</span>: <span style="color: #CE9178;">"INCOMPLETE_ROTATION"</span>,
+                <span style="color: #CE9178;">"severity"</span>: <span style="color: #B5CEA8;">0.3</span>,
+                <span style="color: #CE9178;">"evidence"</span>: <span style="color: #9CDCFE;">self</span>.get_rotation_clip()
+            })
+        
+        <span style="color: #6A9955;"># Check body position</span>
+        knee_angle = <span style="color: #9CDCFE;">self</span>.calc_knee_angle(skeleton_sequence, <span style="color: #CE9178;">"FLIGHT"</span>)
+        <span style="color: #C586C0;">if</span> knee_angle > <span style="color: #9CDCFE;">self</span>.knee_tuck_threshold:
+            deductions.append({
+                <span style="color: #CE9178;">"code"</span>: <span style="color: #CE9178;">"LOOSE_TUCK"</span>,
+                <span style="color: #CE9178;">"severity"</span>: <span style="color: #B5CEA8;">0.1</span>,
+                <span style="color: #CE9178;">"evidence"</span>: <span style="color: #9CDCFE;">self</span>.get_angle_overlay()
+            })
+            
+        <span style="color: #C586C0;">return</span> deductions
+</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 17: The Deduction Engine === -->
+        <div class="slide" id="slide-17">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>DEDUCTION ENGINE</span>
+                    <span>NEUROSYMBOLIC APPROACH</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">NEUROSYMBOLIC APPROACH</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">AI Detects. Rules Interpret.
+                        Explainability Wins.</h2>
+
+                    <!-- Flow Diagram -->
+                    <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 48px;">
+                        <div style="flex: 1; border: 1px solid var(--border-color); padding: 24px; border-radius: 4px;">
+                            <div class="mono-label" style="margin-bottom: 12px;">NEURAL NETWORK</div>
+                            <div style="font-size: 18px; color: white;">"I see a rotation"</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">ML (opaque)
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="flex: 1; border: 1px solid var(--accent-blue); padding: 24px; border-radius: 4px;">
+                            <div class="mono-label" style="margin-bottom: 12px; color: var(--accent-blue);">SYMBOLIC
+                                RULES
+                            </div>
+                            <div style="font-size: 18px; color: white;">"USASF says deduction"</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Logic
+                                (auditable)
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="flex: 1; border: 1px solid var(--border-color); padding: 24px; border-radius: 4px;">
+                            <div class="mono-label" style="margin-bottom: 12px;">EVIDENCE PACKAGE</div>
+                            <div style="font-size: 18px; color: white;">"Here's the proof"</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Visual
+                                (evidence)
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="flex: 1; border: 1px solid var(--signal-green); padding: 24px; border-radius: 4px;">
+                            <div class="mono-label" style="margin-bottom: 12px; color: var(--signal-green);">JUDGE
+                                DECISION
+                            </div>
+                            <div style="font-size: 18px; color: white;">"Accept / Modify"</div>
+                            <div style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">Human
+                                (authority)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+                        <div>
+                            <span class="mono-label" style="color: var(--alert-red);">END-TO-END ML (BLACK BOX)</span>
+                            <ul class="swiss-list" style="margin-top: 16px;">
+                                <li style="margin-bottom: 8px;">Input: video → Output: score</li>
+                                <li style="margin-bottom: 8px;">No explanation ("AI said so")</li>
+                                <li style="margin-bottom: 8px;">Hard to debug</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <span class="mono-label" style="color: var(--signal-green);">NEUROSYMBOLIC (OURS)</span>
+                            <ul class="swiss-list" style="margin-top: 16px;">
+                                <li style="margin-bottom: 8px;">Input: video → keypoints → rules</li>
+                                <li style="margin-bottom: 8px;">Transparent (auditable logic)</li>
+                                <li style="margin-bottom: 8px;">"Here's the video evidence"</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div
+                        style="margin-top: 32px; padding: 16px; border-left: 4px solid var(--signal-green); background: rgba(16, 185, 129, 0.05);">
+                        <strong style="color: var(--signal-green);">Explainability > Accuracy</strong> in a judged
+                        sport. A
+                        wrong call that can be explained is better than a right call that can't.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 18: The Explainability Stack === -->
+        <div class="slide" id="slide-18">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>EXPLAINABILITY</span>
+                    <span>LEVEL 4 TRANSPARENCY</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">LEVEL 4 TRANSPARENCY</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">Every AI Decision Has Video
+                        Evidence
+                    </h2>
+
+                    <!-- Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">SKELETON OVERLAY</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Real-time skeleton on video.
+                                Shows
+                                exactly what AI "sees".</div>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">ANGLE MEASUREMENT</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Numeric readout + threshold.
+                                "Knee
+                                at 52° (threshold: 45°)"</div>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">VIDEO CLIPS</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Auto-extracted per deduction.
+                                Exportable for appeals.</div>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--signal-green); margin-bottom: 8px;">R/Y/G SCORING</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Confidence score. Judge knows
+                                when
+                                to override.</div>
+                        </div>
+                    </div>
+
+                    <!-- Mockup -->
+                    <div
+                        style="border: 1px solid var(--border-color); background: #000; padding: 0; width: 80%; margin: 0 auto;">
+                        <div
+                            style="background: #111; padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                            <span style="font-size: 14px; font-weight: 600;">⚡ REAL-TIME ANALYSIS</span>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Live Feed</div>
+                        </div>
+                        <div style="padding: 24px; display: flex; gap: 24px;">
+                            <div
+                                style="width: 60%; height: 200px; background: #222; display: flex; align-items: center; justify-content: center; color: #555;">
+                                [LIVE VIDEO]</div>
+                            <div style="width: 40%;">
+                                <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Athlete #3:
+                                    Standing
+                                    Back Tuck</div>
+                                <div style="font-size: 14px; margin-bottom: 8px;">├── Hip rotation: 352° <span
+                                        style="color: var(--signal-green);">✅</span></div>
+                                <div style="font-size: 14px; margin-bottom: 8px;">├── Knee angle: 38° <span
+                                        style="color: var(--signal-green);">✅</span></div>
+                                <div style="font-size: 14px; margin-bottom: 16px;">└── Landing: Controlled <span
+                                        style="color: var(--signal-green);">✅</span></div>
+
+                                <div style="font-size: 14px; margin-bottom: 16px;">Confidence: <span
+                                        style="color: var(--signal-green); font-weight: 700;">🟢 HIGH (91%)</span></div>
+
+                                <div style="display: flex; gap: 8px;">
+                                    <button
+                                        style="background: var(--signal-green); border: none; padding: 6px 12px; border-radius: 4px; font-weight: 600;">ACCEPT</button>
+                                    <button
+                                        style="background: #333; border: 1px solid #555; color: white; padding: 6px 12px; border-radius: 4px;">MODIFY</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 19: The Training Data Challenge === -->
+        <div class="slide" id="slide-19">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>TRAINING DATA</span>
+                    <span>THE COLD START PROBLEM</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">THE COLD START PROBLEM</span>
+                    <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 32px;">No Data to Train. Must Build the
+                        Dataset As We Build the System.</h2>
+
+                    <div style="margin-bottom: 24px;">
+                        <span class="mono-label" style="color: var(--alert-red);">THE CHALLENGE</span>
+                        <ul class="swiss-list" style="margin-top: 16px;">
+                            <li style="margin-bottom: 12px;"><strong>Zero labeled datasets:</strong> Unlike gymnastics,
+                                no
+                                production quality data exists.</li>
+                            <li style="margin-bottom: 12px;"><strong>Fine-tuned needs data:</strong> SlowFast requires
+                                thousands of examples.</li>
+                            <li style="margin-bottom: 12px;"><strong>Zero-shot has limits:</strong> ActionCLIP plateaus
+                                at
+                                85%.</li>
+                        </ul>
+                    </div>
+
+                    <div
+                        style="padding: 16px; border: 1px solid var(--alert-red); background: rgba(239, 68, 68, 0.05); border-radius: 4px; color: var(--alert-red);">
+                        This is the single biggest technical risk. Everything else is engineering. This is a
+                        chicken-and-egg
+                        problem.
+                    </div>
+                </div>
+
+                <div class="col-7-12">
+                    <span class="mono-label">THE DATA FLYWHEEL</span>
+
+                    <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px;">
+                        <div style="border: 1px solid var(--border-color); padding: 16px; border-radius: 4px;">
+                            <strong style="color: var(--accent-blue);">1. ZERO-SHOT START</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">ActionCLIP (no data). 85%
+                                Accuracy.
+                            </div>
+                        </div>
+                        <div style="text-align: center;"><i class="fa-solid fa-arrow-down"></i></div>
+                        <div style="border: 1px solid var(--border-color); padding: 16px; border-radius: 4px;">
+                            <strong style="color: var(--accent-blue);">2. SHADOW MODE</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Run parallel. Label edge cases.
+                            </div>
+                        </div>
+                        <div style="text-align: center;"><i class="fa-solid fa-arrow-down"></i></div>
+                        <div style="border: 1px solid var(--border-color); padding: 16px; border-radius: 4px;">
+                            <strong style="color: var(--accent-blue);">3. GYM PARTNERSHIPS</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">10K labeled routines/month. Pay
+                                per
+                                label.</div>
+                        </div>
+                        <div style="text-align: center;"><i class="fa-solid fa-arrow-down"></i></div>
+                        <div style="border: 1px solid var(--signal-green); padding: 16px; border-radius: 4px;">
+                            <strong style="color: var(--signal-green);">4. FINE-TUNE (92%)</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Train SlowFast on real data.
+                            </div>
+                        </div>
+                        <div style="text-align: center;"><i class="fa-solid fa-arrow-down"></i></div>
+                        <div style="border: 1px solid var(--signal-green); padding: 16px; border-radius: 4px;">
+                            <strong style="color: var(--signal-green);">5. SYNTHETIC DATA (95%+)</strong>
+                            <div style="font-size: 14px; color: var(--text-secondary);">Unity 3D generated poses.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 20: Green Light Appliance Operations === -->
+        <div class="slide" id="slide-20">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>OPERATIONS</span>
+                    <span>GREEN LIGHT APPLIANCE</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">GREEN LIGHT APPLIANCE</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">Deploy in 30 Seconds. No CV
+                        Engineers Required.</h2>
+
+                    <!-- Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 48px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">AUTO-CALIBRATION</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>ArUco marker detection</li>
+                                <li>System auto-calibrates</li>
+                                <li style="color: var(--signal-green); font-weight: 600;">30 seconds to ready</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">BUMP DETECTION</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Accelerometer in mounts</li>
+                                <li>Auto-triggers recalib</li>
+                                <li style="color: var(--signal-green); font-weight: 600;">Self-healing system</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">FLEET MANAGEMENT</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Balena device mgmt</li>
+                                <li>OTA software updates</li>
+                                <li style="color: var(--signal-green); font-weight: 600;">Push updates to all</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card" style="border-color: var(--signal-green);">
+                            <strong style="color: var(--signal-green); margin-bottom: 8px;">FAIL-SAFE</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Camera loss → degrade</li>
+                                <li>Crash → manual mode</li>
+                                <li style="color: var(--signal-green); font-weight: 600;">Always works</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Setup Flow -->
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
+                        <div style="text-align: center;">
+                            <div style="border: 1px solid var(--border-color); padding: 12px; width: 100px;">Unpack
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">2min</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="text-align: center;">
+                            <div style="border: 1px solid var(--border-color); padding: 12px; width: 100px;">Mount</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">5min</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="text-align: center;">
+                            <div style="border: 1px solid var(--border-color); padding: 12px; width: 100px;">Power</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">30sec</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--text-secondary);"></i>
+                        <div style="text-align: center;">
+                            <div style="border: 1px solid var(--border-color); padding: 12px; width: 100px;">Calibrate
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">30sec</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right" style="color: var(--signal-green);"></i>
+                        <div style="text-align: center;">
+                            <div
+                                style="border: 1px solid var(--signal-green); background: rgba(16, 185, 129, 0.1); padding: 12px; width: 100px; font-weight: 700; color: var(--signal-green);">
+                                READY</div>
+                            <div style="font-size: 12px; color: var(--signal-green); margin-top: 4px;">~8 MIN TOTAL
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 21: Sidecar Architecture === -->
+        <div class="slide" id="slide-21">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>INTEGRATION</span>
+                    <span>SIDECAR ARCHITECTURE</span>
+                </div>
+                <div class="col-1-12">
+                    <span class="mono-label">SIDECAR ARCHITECTURE</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 40px;">Doesn't Touch Legacy Systems.
+                        Ever.</h2>
+
+                    <!-- Architecture Diagram -->
+                    <div
+                        style="background: #1e1e1e; border: 1px solid var(--border-color); border-radius: 8px; padding: 32px; margin-bottom: 40px; font-family: var(--font-mono); font-size: 13px; color: #d4d4d4; white-space: pre; overflow-x: auto; line-height: 1.4;">
+                        ┌──────────────────────────────────────────────────────────────────────────────────────┐
+                        │ EXISTING SCORING SYSTEM │
+                        │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+                        │ │ Judge │ │ Score │ │ Results │ │ Broadcast │ │
+                        │ │ Tablets │→→→│ Database │→→→│ Display │→→→│ Feed │ │
+                        │ │ (CURRENT) │ │ (CURRENT) │ │ (CURRENT) │ │ (CURRENT) │ │
+                        │ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ │
+                        │ ↑ │
+                        │ │ JUDGE READS │
+                        │ │ RECOMMENDATIONS │
+                        │ │ │
+                        │ ┌──────┴──────────────────────────────────────────────────────────────────┐ │
+                        │ │ TRUESCORE SIDECAR │ │
+                        │ │ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │ │
+                        │ │ │ Camera │→→→│ Edge AI │→→→│ Suggest │ │ │
+                        │ │ │ Array │ │ Processing │ │ Display │ ← SEPARATE TABLET │ │
+                        │ │ └─────────────┘ └─────────────┘ └─────────────┘ (or app overlay) │ │
+                        │ │ │ │
+                        │ │ AIR-GAPPED: No integration with legacy scoring database │ │
+                        │ └──────────────────────────────────────────────────────────────────────────┘ │
+                        └──────────────────────────────────────────────────────────────────────────────────────┘
+                    </div>
+
+                    <!-- Key Points -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">ZERO INTEGRATION
+                                RISK</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Doesn't touch scoring DB</li>
+                                <li>No tablet modification</li>
+                                <li>Complete isolation</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">EASY ROLLBACK</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Remove sidecar kit</li>
+                                <li>Judges continue normally</li>
+                                <li>2-minute rollback</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">GRADUAL ADOPTION</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Deploy to one panel</li>
+                                <li>A/B test vs control</li>
+                                <li>Scale if proven</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 22: Human-in-the-Loop & Liability === -->
+        <div class="slide" id="slide-22">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>LIABILITY</span>
+                    <span>HUMAN-IN-THE-LOOP</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">HUMAN-IN-THE-LOOP</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 32px;">AI Suggests. Human Decides.
+                        Human Is Liable.</h2>
+
+                    <!-- Workflow -->
+                    <div
+                        style="font-family: var(--font-mono); font-size: 13px; color: #d4d4d4; white-space: pre; line-height: 1.4; margin-bottom: 32px;">
+                        ┌─────────────────────────────────┐
+                        │ 1. ROUTINE BEGINS │
+                        │ AI starts tracking │
+                        └───────────────┬─────────────────┘
+                        ▼
+                        ┌─────────────────────────────────┐
+                        │ 2. AI DETECTS DEDUCTION │
+                        │ "Incomplete rotation" │
+                        │ Confidence: 87% │
+                        └───────────────┬─────────────────┘
+                        ▼
+                        ┌─────────────────────────────────┐
+                        │ 3. WHISPER TO JUDGE │
+                        │ Subtle overlay on tablet │
+                        │ Video clip + angle shown │
+                        └───────────────┬─────────────────┘
+                        ▼
+                        ┌─────────────────────────────────┐
+                        │ 4. JUDGE DECISION │
+                        │ ☑ Accept ☐ Modify ☐ Ignore│
+                        │ JUDGE INPUTS FINAL SCORE │
+                        └───────────────┬─────────────────┘
+                        ▼
+                        ┌─────────────────────────────────┐
+                        │ 5. LIABILITY REMAINS WITH │
+                        │ HUMAN JUDGE │
+                        │ AI is advisory only │
+                        └─────────────────────────────────┘
+                    </div>
+
+                    <!-- Dispute Resolution Card -->
+                    <div class="swiss-card" style="border-left: 2px solid var(--signal-green);">
+                        <strong style="color: var(--signal-green); margin-bottom: 8px;">DISPUTE RESOLUTION</strong>
+                        <div style="font-size: 14px; margin-bottom: 4px;"><strong>Current:</strong> ~10 minutes
+                            (manual review)</div>
+                        <div style="font-size: 14px;"><strong>TrueScore:</strong> <span
+                                style="color: var(--signal-green); font-weight: 700;">~30 seconds</span>
+                            (evidence-based)</div>
+                    </div>
+                </div>
+
+                <div class="col-7-12">
+                    <!-- Placeholder Image -->
+                    <div
+                        style="width: 100%; height: 400px; background: #1e1e1e; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); margin-bottom: 24px;">
+                        <span style="font-family: var(--font-mono); color: var(--text-secondary);">[IMAGE: Coach
+                            reviewing on iPad]</span>
+                    </div>
+
+                    <div style="border-left: 2px solid var(--text-secondary); padding-left: 16px;">
+                        <p style="font-size: 18px; line-height: 1.4; color: var(--text-primary);">
+                            "This is not replacement. This is augmentation. The judge's expertise in artistry and
+                            performance quality remains irreplaceable."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 23: Multi-Person Challenge === -->
+        <div class="slide" id="slide-23">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>ROADMAP</span>
+                    <span>MULTI-PERSON TRACKING</span>
+                </div>
+
+                <div class="col-1-6">
+                    <span class="mono-label">MULTI-PERSON TRACKING</span>
+                    <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 32px;">MVP: Single-Athlete Tumbling.
+                        Roadmap: Multi-Person Stunts.</h2>
+
+                    <span class="mono-label" style="color: var(--signal-green);">PHASE 1: TUMBLING FOCUS</span>
+                    <ul class="swiss-list" style="margin-bottom: 32px;">
+                        <li><strong>Single-athlete elements:</strong> Standing/running tumbling, jumps</li>
+                        <li><strong>Lower occlusion:</strong> Athletes separated</li>
+                        <li><strong>Proven technology:</strong> YOLOv8-Pose handles this today</li>
+                        <li><strong>50+ skills covered:</strong> Back tuck, full, toe touch</li>
+                    </ul>
+
+                    <div
+                        style="border: 1px solid var(--signal-green); background: rgba(16, 185, 129, 0.05); padding: 16px; border-radius: 4px;">
+                        <p style="margin: 0; font-size: 14px; line-height: 1.4;">
+                            <strong style="color: var(--signal-green);">MVP covers ~60% of judging.</strong> Start here,
+                            prove accuracy, then expand.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-7-12">
+                    <span class="mono-label" style="color: var(--accent-blue);">PHASE 2+: MULTI-PERSON ROADMAP</span>
+
+                    <div
+                        style="font-family: var(--font-mono); font-size: 13px; color: #d4d4d4; white-space: pre; line-height: 1.4; background: #1e1e1e; padding: 24px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+                        Year 1 ─────────────────────────────────────
+                        │ Single-athlete tumbling
+                        │ 1-2 athletes in frame
+                        │ Minimal occlusion
+                        │
+                        Year 2 ─────────────────────────────────────
+                        │ Partner stunts
+                        │ 2-4 athletes (base + flyer)
+                        │ Re-ID tracking for handoffs
+                        │
+                        Year 3 ─────────────────────────────────────
+                        │ Group stunts
+                        │ 4-5 athletes
+                        │ Occlusion handling
+                        │
+                        Year 4+ ─────────────────────────────────────
+                        │ Full pyramids
+                        │ 4-20 athletes
+                        │ 3D reconstruction (Architecture C)
+                    </div>
+
+                    <strong
+                        style="display: block; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Technical
+                        Challenges</strong>
+                    <ul class="swiss-list" style="font-size: 14px;">
+                        <li><strong>Occlusion:</strong> Identity tracking fails when athletes overlap.</li>
+                        <li><strong>Synchronization:</strong> Aligning actions across multiple athletes.</li>
+                        <li><strong>Data:</strong> Labeled multi-person data is extremely scarce.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 24: Panel Consolidation Economics === -->
+        <div class="slide" id="slide-24">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>ECONOMICS</span>
+                    <span>PANEL CONSOLIDATION</span>
+                </div>
+
+                <div class="col-1-12" style="text-align: center; margin-bottom: 40px;">
+                    <div class="big-number" style="font-size: 120px; line-height: 1; color: var(--signal-green);">57%
+                    </div>
+                    <div class="big-number-label" style="font-size: 24px;">Judge Labor Reduction Per Panel</div>
+                    <h2 style="font-size: 32px; font-weight: 400; color: var(--text-secondary); margin-top: 16px;">7
+                        Judges → 3 Judges</h2>
+                </div>
+
+                <div class="col-1-12">
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 16px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th
+                                    style="text-align: left; padding: 12px; color: var(--text-secondary); font-weight: 400; font-family: var(--font-mono);">
+                                    METRIC</th>
+                                <th
+                                    style="text-align: right; padding: 12px; color: var(--text-secondary); font-weight: 400; font-family: var(--font-mono);">
+                                    CURRENT (7-JUDGE)</th>
+                                <th
+                                    style="text-align: right; padding: 12px; color: var(--signal-green); font-weight: 700; font-family: var(--font-mono);">
+                                    WITH TRUESCORE (3-JUDGE)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Judges per panel</td>
+                                <td style="text-align: right; padding: 12px;">7</td>
+                                <td style="text-align: right; padding: 12px; color: var(--signal-green);">3</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Panels per event</td>
+                                <td style="text-align: right; padding: 12px;">5</td>
+                                <td style="text-align: right; padding: 12px;">5</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Total judges required</td>
+                                <td style="text-align: right; padding: 12px;">35</td>
+                                <td style="text-align: right; padding: 12px; color: var(--signal-green);">15</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Judge cost per day</td>
+                                <td style="text-align: right; padding: 12px;">$500</td>
+                                <td style="text-align: right; padding: 12px;">$500</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px;">Daily judge labor</td>
+                                <td style="text-align: right; padding: 12px;">$17,500</td>
+                                <td style="text-align: right; padding: 12px;">$7,500</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; font-weight: 700;">SAVINGS PER EVENT</td>
+                                <td style="text-align: right; padding: 12px;">—</td>
+                                <td
+                                    style="text-align: right; padding: 12px; font-weight: 700; color: var(--signal-green); font-size: 20px;">
+                                    $10,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">AI HANDLES COUNTERS</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Rotation counting</li>
+                                <li>Position tracking</li>
+                                <li>Timing measurement</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">HUMANS HANDLE ART</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Performance quality</li>
+                                <li>Artistry assessment</li>
+                                <li>Subjective judgment</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">SENIORITY ARBITRAGE</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Fewer, more senior judges</li>
+                                <li>Better consistency</li>
+                                <li>Net 57% savings</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 25: Total Cost of Ownership === -->
+        <div class="slide" id="slide-25">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>TCO</span>
+                    <span>5-YEAR OWNERSHIP</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">5-YEAR OWNERSHIP</span>
+                    <h2 style="font-size: 44px; font-weight: 800; margin-bottom: 40px;">Hardware Self-Funds in Season 1
+                    </h2>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th
+                                    style="text-align: left; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    COST CATEGORY</th>
+                                <th
+                                    style="text-align: right; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    YEAR 1</th>
+                                <th
+                                    style="text-align: right; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    YEAR 2</th>
+                                <th
+                                    style="text-align: right; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    YEAR 3</th>
+                                <th
+                                    style="text-align: right; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    YEAR 4</th>
+                                <th
+                                    style="text-align: right; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    YEAR 5</th>
+                                <th
+                                    style="text-align: right; padding: 8px; color: var(--text-secondary); font-family: var(--font-mono); font-weight: 700;">
+                                    5-YEAR TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7"
+                                    style="padding: 8px; font-weight: 700; background: rgba(255,255,255,0.05);">HARDWARE
+                                    (PER KIT)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Cameras (10-yr life)</td>
+                                <td style="text-align: right; padding: 8px;">$3,400</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$3,400</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Jetson (3-yr deprec)</td>
+                                <td style="text-align: right; padding: 8px;">$1,600</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$1,600</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$3,200</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">PTP Switch</td>
+                                <td style="text-align: right; padding: 8px;">$2,500</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$2,500</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">NAS + Storage</td>
+                                <td style="text-align: right; padding: 8px;">$1,500</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$1,500</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Mounts, cables, cases</td>
+                                <td style="text-align: right; padding: 8px;">$9,000</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$11,000</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #333; font-weight: 700;">
+                                <td style="padding: 8px;">Hardware Subtotal</td>
+                                <td style="text-align: right; padding: 8px;">$18,000</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$2,100</td>
+                                <td style="text-align: right; padding: 8px;">$500</td>
+                                <td style="text-align: right; padding: 8px;">$21,600</td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="7"
+                                    style="padding: 8px; font-weight: 700; background: rgba(255,255,255,0.05); margin-top: 10px;">
+                                    OPERATIONS (PER KIT)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Maintenance & support</td>
+                                <td style="text-align: right; padding: 8px;">$0</td>
+                                <td style="text-align: right; padding: 8px;">$1,800</td>
+                                <td style="text-align: right; padding: 8px;">$1,800</td>
+                                <td style="text-align: right; padding: 8px;">$1,800</td>
+                                <td style="text-align: right; padding: 8px;">$1,800</td>
+                                <td style="text-align: right; padding: 8px;">$7,200</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;">Cloud sync & storage</td>
+                                <td style="text-align: right; padding: 8px;">$600</td>
+                                <td style="text-align: right; padding: 8px;">$600</td>
+                                <td style="text-align: right; padding: 8px;">$600</td>
+                                <td style="text-align: right; padding: 8px;">$600</td>
+                                <td style="text-align: right; padding: 8px;">$600</td>
+                                <td style="text-align: right; padding: 8px;">$3,000</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #333; font-weight: 700;">
+                                <td style="padding: 8px;">Ops Subtotal</td>
+                                <td style="text-align: right; padding: 8px;">$600</td>
+                                <td style="text-align: right; padding: 8px;">$2,400</td>
+                                <td style="text-align: right; padding: 8px;">$2,400</td>
+                                <td style="text-align: right; padding: 8px;">$2,400</td>
+                                <td style="text-align: right; padding: 8px;">$2,400</td>
+                                <td style="text-align: right; padding: 8px;">$10,200</td>
+                            </tr>
+
+                            <tr style="border-top: 2px solid var(--signal-green); font-weight: 800; font-size: 16px;">
+                                <td style="padding: 12px; color: var(--signal-green);">TOTAL PER KIT</td>
+                                <td style="text-align: right; padding: 12px;">$18,600</td>
+                                <td style="text-align: right; padding: 12px;">$2,900</td>
+                                <td style="text-align: right; padding: 12px;">$2,900</td>
+                                <td style="text-align: right; padding: 12px;">$4,500</td>
+                                <td style="text-align: right; padding: 12px;">$2,900</td>
+                                <td style="text-align: right; padding: 12px; color: var(--signal-green);">$31,800</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div
+                        style="border: 1px solid var(--signal-green); background: rgba(16, 185, 129, 0.1); padding: 24px; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; font-size: 20px;">
+                            At $300 tech fee per event and 75 events/year per kit:
+                            <strong
+                                style="color: var(--signal-green); font-weight: 800; display: block; margin-top: 8px; font-size: 28px;">$22,500
+                                Year 1 Revenue</strong>
+                            <span
+                                style="display: block; margin-top: 8px; font-size: 16px; color: var(--text-secondary);">→
+                                Hardware self-funds in Season 1</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 26: Venue Overtime Savings === -->
+        <div class="slide" id="slide-26">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>VENUE SAVINGS</span>
+                    <span>OVERTIME ELIMINATION</span>
+                </div>
+
+                <div class="col-1-12" style="text-align: center; margin-bottom: 40px;">
+                    <div class="big-number" style="font-size: 120px; line-height: 1; color: var(--signal-green);">2.5
+                        hrs</div>
+                    <div class="big-number-label" style="font-size: 24px;">Event Time Saved Per Day</div>
+                    <h2 style="font-size: 32px; font-weight: 400; color: var(--text-secondary); margin-top: 16px;">90
+                        Seconds Saved Per Routine</h2>
+                </div>
+
+                <div class="col-1-6">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px; color: var(--text-secondary);">Time saved per routine</td>
+                                <td style="text-align: right; padding: 12px;">90 seconds</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px; color: var(--text-secondary);">Routines per event day</td>
+                                <td style="text-align: right; padding: 12px;">100</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px; color: var(--text-secondary);">Total time saved</td>
+                                <td style="text-align: right; padding: 12px;">150 minutes</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color); font-weight: 700;">
+                                <td style="padding: 12px; color: var(--text-primary);">Time saved (hours)</td>
+                                <td style="text-align: right; padding: 12px;">2.5 hours</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px; color: var(--text-secondary);">Venue overtime cost/hr</td>
+                                <td style="text-align: right; padding: 12px;">$2,000</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; font-weight: 700; color: var(--signal-green);">OVERTIME
+                                    SAVINGS</td>
+                                <td
+                                    style="text-align: right; padding: 12px; font-weight: 700; color: var(--signal-green); font-size: 20px;">
+                                    $5,000/event</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-7-12">
+                    <strong style="display: block; margin-bottom: 16px; color: var(--accent-blue);">ADDITIONAL
+                        BENEFITS</strong>
+                    <ul class="swiss-list">
+                        <li><strong>Faster dispute resolution:</strong> 10 min → 30 sec per dispute</li>
+                        <li><strong>Fewer disputes:</strong> Evidence-based scoring reduces complaints</li>
+                        <li><strong>Athlete experience:</strong> Less waiting, better flow</li>
+                        <li><strong>Parent satisfaction:</strong> More certainty, less frustration</li>
+                        <li><strong>Event capacity:</strong> More routines per time slot</li>
+                    </ul>
+                    <div style="margin-top: 24px; padding: 16px; border-left: 2px solid var(--text-secondary);">
+                        <p style="margin: 0; font-size: 14px; line-height: 1.4; color: var(--text-secondary);">
+                            "Venue overtime is non-negotiable at most sites. Events that run long face penalties or get
+                            locked out. TrueScore provides a buffer."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 27: Data Strategy & Flywheel === -->
+        <div class="slide" id="slide-27">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>DATA STRATEGY</span>
+                    <span>THE FLYWHEEL</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">THE FLYWHEEL</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">Three Data Sources. One
+                        Continuous Improvement Loop.</h2>
+
+                    <!-- 3 Source Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">HISTORICAL ARCHIVE</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>500K+ historical routines</li>
+                                <li>Video only (unlabeled)</li>
+                                <li>Value: Pre-training</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">GYM PARTNERSHIPS</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Label practice footage</li>
+                                <li>$2-5 per routine</li>
+                                <li>Target: 10K/month</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">SHADOW MODE</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Every production event</li>
+                                <li>Auto-labels via judges</li>
+                                <li>Value: Edge cases</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Flywheel Diagram -->
+                    <div
+                        style="font-family: var(--font-mono); font-size: 13px; color: #d4d4d4; white-space: pre; overflow-x: auto; line-height: 1.4; display: flex; justify-content: center; margin-bottom: 32px;">
+                        ┌─────────────────────────────────────────────────────────────┐
+                        │ │
+                        ▼ │
+                        ┌─────────────────┐ │
+                        │ DEPLOY AT │ │
+                        │ EVENT │ │
+                        └────────┬────────┘ │
+                        ▼ │
+                        ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+                        │ COLLECT │ → │ LABEL VIA │ → │ FINE-TUNE │ │
+                        │ VIDEO │ │ JUDGE SCORES │ │ MODEL │ │
+                        └─────────────────┘ └─────────────────┘ └────────┬────────┘ │
+                        │ │
+                        ▼ │
+                        ┌─────────────────┐ │
+                        │ IMPROVE │──┘
+                        │ ACCURACY │
+                        └─────────────────┘
+
+                        EVERY EVENT MAKES THE SYSTEM BETTER
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                        <span
+                            style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-blue); display: block; margin-bottom: 4px;">YEAR
+                            2+ SYNTHETIC PIPELINE</span>
+                        <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">
+                            Unity 3D motion capture to pose data. Generates rare skills and edge cases to fill gaps in
+                            real-world data.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 28: Accuracy Roadmap === -->
+        <div class="slide" id="slide-28">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>ACCURACY ROADMAP</span>
+                    <span>DATA-DRIVEN IMPROVEMENT</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">DATA-DRIVEN IMPROVEMENT</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">Accuracy Correlates Directly to
+                        Data Volume</h2>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th
+                                    style="text-align: left; padding: 12px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    YEAR</th>
+                                <th
+                                    style="text-align: right; padding: 12px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    LABELED DATA</th>
+                                <th
+                                    style="text-align: center; padding: 12px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    ZERO-SHOT (ActionCLIP)</th>
+                                <th
+                                    style="text-align: center; padding: 12px; color: var(--text-secondary); font-family: var(--font-mono);">
+                                    FINE-TUNED (SlowFast)</th>
+                                <th
+                                    style="text-align: right; padding: 12px; color: var(--signal-green); font-weight: 700; font-family: var(--font-mono);">
+                                    COMBINED SYSTEM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Year 1</td>
+                                <td style="text-align: right; padding: 12px;">10K routines</td>
+                                <td style="text-align: center; padding: 12px;">85%</td>
+                                <td style="text-align: center; padding: 12px; color: var(--text-secondary);">Not
+                                    trained</td>
+                                <td
+                                    style="text-align: right; padding: 12px; font-weight: 700; color: var(--signal-green);">
+                                    85%</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Year 2</td>
+                                <td style="text-align: right; padding: 12px;">50K routines</td>
+                                <td style="text-align: center; padding: 12px;">85%</td>
+                                <td style="text-align: center; padding: 12px;">89%</td>
+                                <td
+                                    style="text-align: right; padding: 12px; font-weight: 700; color: var(--signal-green);">
+                                    89%</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #1e1e1e;">
+                                <td style="padding: 12px;">Year 3</td>
+                                <td style="text-align: right; padding: 12px;">200K routines</td>
+                                <td style="text-align: center; padding: 12px;">85%</td>
+                                <td style="text-align: center; padding: 12px;">92%</td>
+                                <td
+                                    style="text-align: right; padding: 12px; font-weight: 700; color: var(--signal-green);">
+                                    92%</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px;">Year 4+</td>
+                                <td style="text-align: right; padding: 12px;">500K+ routines</td>
+                                <td style="text-align: center; padding: 12px;">85%</td>
+                                <td style="text-align: center; padding: 12px;">95%+</td>
+                                <td
+                                    style="text-align: right; padding: 12px; font-weight: 700; color: var(--signal-green);">
+                                    95%+</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px;">
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">DATA VOLUME</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>More examples = better generalization</li>
+                                <li>Rare skills need more data</li>
+                                <li>Target: 50K Year 2</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">MODEL FINE-TUNING</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>SlowFast on real data</li>
+                                <li>Quarterly retraining cycles</li>
+                                <li>Transfer learning from archive</li>
+                            </ul>
+                        </div>
+                        <div class="swiss-card">
+                            <strong style="color: var(--accent-blue); margin-bottom: 8px;">SYNTHETIC
+                                AUGMENTATION</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 14px;">
+                                <li>Unity 3D pose generation</li>
+                                <li>Edge case manufacturing</li>
+                                <li>20%+ boost for long tail</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid #333; border-radius: 4px; padding: 16px;">
+                        <div style="display: flex; gap: 32px; justify-content: space-between; font-size: 14px;">
+                            <div><strong style="color: var(--signal-green);">85% ACCURACY</strong>: Shadow Mode</div>
+                            <div><strong style="color: var(--signal-green);">89% ACCURACY</strong>: Whisper Mode</div>
+                            <div><strong style="color: var(--signal-green);">92% ACCURACY</strong>: Validate Mode</div>
+                            <div><strong style="color: var(--signal-green);">95%+ ACCURACY</strong>: Co-Pilot/Autopilot
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 29: Phased Autonomy === -->
+        <div class="slide" id="slide-29">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>PHASED AUTONOMY</span>
+                    <span>TECHNICAL MILESTONES</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">TECHNICAL MILESTONES</span>
+                    <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 32px;">From Shadow to Autopilot —
+                        Software and Hardware Per Phase</h2>
+
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px;">
+                        <!-- Phase 1 -->
+                        <div class="swiss-card" style="padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">PHASE 1
+                            </div>
+                            <strong
+                                style="color: var(--accent-blue); display: block; margin-bottom: 12px; font-size: 18px;">SHADOW</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 12px;">
+                                <li><strong>Accuracy:</strong> 85%</li>
+                                <li><strong>Output:</strong> Internal only</li>
+                                <li><strong>HW:</strong> Arch A/B</li>
+                                <li><strong>Timeline:</strong> MVP (Yr 1)</li>
+                            </ul>
+                        </div>
+                        <!-- Phase 2 -->
+                        <div class="swiss-card" style="padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">PHASE 2
+                            </div>
+                            <strong
+                                style="color: var(--accent-blue); display: block; margin-bottom: 12px; font-size: 18px;">WHISPER</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 12px;">
+                                <li><strong>Accuracy:</strong> 89%</li>
+                                <li><strong>Output:</strong> Judge overlay</li>
+                                <li><strong>HW:</strong> Arch B</li>
+                                <li><strong>Timeline:</strong> Yr 1-2</li>
+                            </ul>
+                        </div>
+                        <!-- Phase 3 -->
+                        <div class="swiss-card" style="padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">PHASE 3
+                            </div>
+                            <strong
+                                style="color: var(--accent-blue); display: block; margin-bottom: 12px; font-size: 18px;">VALIDATE</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 12px;">
+                                <li><strong>Accuracy:</strong> 92%</li>
+                                <li><strong>Output:</strong> Pre-filled</li>
+                                <li><strong>HW:</strong> Arch B</li>
+                                <li><strong>Timeline:</strong> Yr 2-3</li>
+                            </ul>
+                        </div>
+                        <!-- Phase 4 -->
+                        <div class="swiss-card" style="padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">PHASE 4
+                            </div>
+                            <strong
+                                style="color: var(--accent-blue); display: block; margin-bottom: 12px; font-size: 18px;">CO-PILOT</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 12px;">
+                                <li><strong>Accuracy:</strong> 94%</li>
+                                <li><strong>Output:</strong> Posted w/ review</li>
+                                <li><strong>HW:</strong> Arch B/C</li>
+                                <li><strong>Timeline:</strong> Yr 3-4</li>
+                            </ul>
+                        </div>
+                        <!-- Phase 5 -->
+                        <div class="swiss-card" style="padding: 16px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">PHASE 5
+                            </div>
+                            <strong
+                                style="color: var(--signal-green); display: block; margin-bottom: 12px; font-size: 18px;">AUTOPILOT</strong>
+                            <ul class="swiss-list" style="padding: 0; margin: 0; font-size: 12px;">
+                                <li><strong>Accuracy:</strong> 96%+</li>
+                                <li><strong>Output:</strong> Autonomous</li>
+                                <li><strong>HW:</strong> Arch C</li>
+                                <li><strong>Timeline:</strong> Yr 4+</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: rgba(16, 185, 129, 0.05); border: 1px solid var(--signal-green); padding: 16px; border-radius: 4px; text-align: center;">
+                        <p style="margin: 0; font-size: 14px; color: var(--signal-green);">
+                            "No phase advances without hitting accuracy threshold on held-out test set. Multi-event
+                            validation required before production deployment."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === SLIDE 30: 90-Day Technical Plan === -->
+        <div class="slide" id="slide-30">
+            <div class="grid-layout">
+                <div class="meta-header">
+                    <span>NEXT STEPS</span>
+                    <span>90-DAY PLAN</span>
+                </div>
+
+                <div class="col-1-12">
+                    <span class="mono-label">90-DAY PLAN</span>
+                    <h2 style="font-size: 40px; font-weight: 800; margin-bottom: 40px;">From Approval to First Event
+                        Deployment</h2>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px;">
+                        <!-- Weeks 1-4 -->
+                        <div>
+                            <strong
+                                style="color: var(--accent-blue); display: block; margin-bottom: 12px; border-bottom: 1px solid var(--accent-blue); padding-bottom: 8px;">WEEKS
+                                1-4: FOUNDATION</strong>
+                            <ul class="swiss-list" style="font-size: 14px;">
+                                <li>Finalize hardware procurement</li>
+                                <li>Stand up dev environment</li>
+                                <li>Begin pose model integration</li>
+                                <li>Archive data pipeline</li>
+                                <li style="color: var(--text-secondary); margin-top: 8px;">Team: 2 engineers</li>
+                            </ul>
+                        </div>
+                        <!-- Weeks 5-8 -->
+                        <div>
+                            <strong
+                                style="color: var(--accent-blue); display: block; margin-bottom: 12px; border-bottom: 1px solid var(--accent-blue); padding-bottom: 8px;">WEEKS
+                                5-8: PIPELINE BUILD</strong>
+                            <ul class="swiss-list" style="font-size: 14px;">
+                                <li>Integrate ByteTrack</li>
+                                <li>Implement ActionCLIP zero-shot</li>
+                                <li>Ground truth spec (10 skills)</li>
+                                <li>Alpha judge UI prototype</li>
+                                <li style="color: var(--text-secondary); margin-top: 8px;">Team: 3 engineers</li>
+                            </ul>
+                        </div>
+                        <!-- Weeks 9-12 -->
+                        <div>
+                            <strong
+                                style="color: var(--signal-green); display: block; margin-bottom: 12px; border-bottom: 1px solid var(--signal-green); padding-bottom: 8px;">WEEKS
+                                9-12: FIELD VALIDATION</strong>
+                            <ul class="swiss-list" style="font-size: 14px;">
+                                <li>Deploy Arch B kit to test venue</li>
+                                <li>Shadow mode at 3-5 events</li>
+                                <li>Compare AI vs judge scores</li>
+                                <li>Generate accuracy report</li>
+                                <li style="color: var(--text-secondary); margin-top: 8px;">Team: 3 engineers + 1 ops
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Deliverables -->
+                    <div
+                        style="display: flex; gap: 32px; justify-content: center; margin-bottom: 40px; font-size: 16px;">
+                        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-check"
+                                style="color: var(--signal-green);"></i> Working Architecture B kit</div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-check"
+                                style="color: var(--signal-green);"></i> Shadow mode active</div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-check"
+                                style="color: var(--signal-green);"></i> Accuracy baseline</div>
+                        <div style="display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-check"
+                                style="color: var(--signal-green);"></i> Go/no-go decision</div>
+                    </div>
+
+                    <!-- Budget Table -->
+                    <div style="display: flex; justify-content: center;">
+                        <table style="width: 60%; font-size: 14px; border-collapse: collapse;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #1e1e1e;">
+                                    <td style="padding: 8px;">Engineering (3 FTE × 3 months)</td>
+                                    <td style="text-align: right; padding: 8px;">$150,000</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #1e1e1e;">
+                                    <td style="padding: 8px;">Hardware (2 prototype kits)</td>
+                                    <td style="text-align: right; padding: 8px;">$36,000</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #1e1e1e;">
+                                    <td style="padding: 8px;">Cloud & infrastructure</td>
+                                    <td style="text-align: right; padding: 8px;">$5,000</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 8px;">Travel (field validation)</td>
+                                    <td style="text-align: right; padding: 8px;">$9,000</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; font-weight: 700; color: var(--signal-green);">TOTAL
+                                        90-DAY INVESTMENT</td>
+                                    <td
+                                        style="text-align: right; padding: 8px; font-weight: 700; color: var(--signal-green); font-size: 18px;">
+                                        $200,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 40px; text-align: center;">
+                        <div style="font-family: var(--font-mono); font-size: 11px; color: #475569;">
+                            Confidential — Prepared for Varsity Brands Engineering Leadership | February 2026
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === CONTROLS === -->
+        <div class="controls-layer">
+            <!-- Left: Slide Counter -->
+            <div class="slide-counter" id="slide-number">SLIDE 01 / 30</div>
+
+            <!-- Center: Audio Player -->
+            <div class="audio-player">
+                <button class="control-btn" id="btn-mute" title="Mute/Unmute" style="margin-right: 8px;">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <button class="control-btn" id="btn-play-pause" onclick="togglePlay()" title="Play/Pause">
+                    <i class="fa-solid fa-play" id="icon-play-pause"></i>
+                </button>
+
+                <div class="scrubber-container" id="scrubber-container">
+                    <div class="scrubber-fill" id="scrubber-fill">
+                        <div class="scrubber-thumb"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="controls-right">
+                <!-- Navigation Arrows -->
+                <div class="control-group">
+                    <button class="control-btn" id="btn-prev" onclick="prevSlide()" title="Previous Slide">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button class="control-btn" id="btn-next" onclick="nextSlide()" title="Next Slide">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Navigation Logic
+        let currentSlide = 1;
+        const totalSlides = 30;
+
+        // Audio Logic
+        let audio = new Audio();
+        let isMuted = false;
+        let isPlaying = false;
+        // Map slides to audio files. Slide 1 has no audio.
+        const audioBasePath = 'assets/audio/';
+
+        // Helper to format time
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return "00:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function showSlide(n) {
+            // Clamp
+            if (n < 1) n = 1;
+            if (n > totalSlides) n = totalSlides;
+
+            currentSlide = n;
+
+            // Hide all slides
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+
+            // Show target slide
+            const slide = document.getElementById('slide-' + n);
+            if (slide) slide.classList.add('active');
+
+            // Update Counter
+            const counter = document.getElementById('slide-number');
+            if (counter) counter.innerText = `SLIDE ${String(n).padStart(2, '0')} / ${totalSlides}`;
+
+            // Handle Audio
+            loadAndPlayAudio(n);
+        }
+
+        function loadAndPlayAudio(slideNum) {
+            // Stop existing
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            updatePlayBtn();
+            updateProgress(0, 0);
+
+            // Construct path
+            // Slide 1 has no audio
+            if (slideNum === 1) {
+                // No audio for slide 1
+                document.getElementById('scrubber-container').style.opacity = "0.5";
+                document.getElementById('scrubber-container').style.pointerEvents = "none";
+                return;
+            }
+
+            // Enable scrubber
+            document.getElementById('scrubber-container').style.opacity = "1";
+            document.getElementById('scrubber-container').style.pointerEvents = "auto";
+
+            const filename = `Slide_${String(slideNum).padStart(2, '0')}.mp3`;
+            audio.src = audioBasePath + filename;
+            audio.load();
+
+            // Auto-play if not muted (and browser allows)
+            // Note: Browsers block autoplay often. We'll try. 
+            // If muted, we can play. If not, we might get blocked until interaction.
+            // Since user likely clicked "Next", interaction exists.
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    isPlaying = true;
+                    updatePlayBtn();
+                }).catch(error => {
+                    console.log("Autoplay prevented:", error);
+                    isPlaying = false;
+                    updatePlayBtn();
+                });
+            }
+        }
+
+        function togglePlay() {
+            if (currentSlide === 1 && !audio.src) return;
+
+            if (audio.paused) {
+                audio.play();
+                isPlaying = true;
+            } else {
+                audio.pause();
+                isPlaying = false;
+            }
+            updatePlayBtn();
+        }
+
+        function updatePlayBtn() {
+            const icon = document.getElementById('icon-play-pause');
+            if (audio.paused) {
+                icon.className = 'fa-solid fa-play';
+            } else {
+                icon.className = 'fa-solid fa-pause';
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            audio.muted = isMuted;
+            const icon = document.querySelector('#btn-mute i');
+            if (isMuted) {
+                icon.className = 'fa-solid fa-volume-xmark';
+                icon.style.color = 'var(--alert-red)';
+            } else {
+                icon.className = 'fa-solid fa-volume-high';
+                icon.style.color = 'inherit';
+            }
+        }
+
+        // Scrubber & Time Logic
+        audio.addEventListener('timeupdate', () => {
+            const current = audio.currentTime;
+            const duration = audio.duration;
+            updateProgress(current, duration);
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            updateProgress(0, audio.duration);
+        });
+
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            updatePlayBtn();
+        });
+
+        function updateProgress(current, duration) {
+            const fill = document.getElementById('scrubber-fill');
+
+            const percent = (current / duration) * 100 || 0;
+            fill.style.width = `${percent}%`;
+        }
+
+        // Scrubber Click
+        const scrubberContainer = document.getElementById('scrubber-container');
+        scrubberContainer.addEventListener('click', (e) => {
+            if (!audio.src || currentSlide === 1) return;
+
+            const rect = scrubberContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const percent = clickX / width;
+
+            if (audio.duration) {
+                audio.currentTime = percent * audio.duration;
+            }
+        });
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) showSlide(currentSlide - 1);
+        }
+
+        // Event Listeners
+        const muteBtn = document.getElementById('btn-mute');
+        if (muteBtn) muteBtn.addEventListener('click', toggleMute);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            else if (e.key === 'ArrowLeft') prevSlide();
+            else if (e.key === ' ') {
+                e.preventDefault(); // Prevent scroll
+                togglePlay();
+            }
+        });
+
+        // Init
+        // Initialize audio muted state based on variable (false by default)
+        audio.muted = isMuted;
+        showSlide(1);
+    </script>
+</body>
+
+</html>
