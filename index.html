@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=864, initial-scale=1.0">
+    <title>TrueScore Executive Presentations</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS Variables & Reset */
+        :root {
+            --bg-color: #080C14;
+            --body-bg: #050505;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --accent-blue: #3B82F6;
+            --signal-green: #10B981;
+            --alert-red: #EF4444;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --grid-line-color: rgba(255, 255, 255, 0.03);
+
+            --font-manrope: 'Manrope', sans-serif;
+            --font-inter: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--body-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: var(--font-inter);
+            color: var(--text-primary);
+            padding: 40px 0;
+        }
+
+        /* Main Container */
+        #landing-container {
+            width: 1280px;
+            background-color: var(--bg-color);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Grid Lines Background */
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            padding: 0 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .grid-line {
+            border-right: 1px solid var(--grid-line-color);
+            height: 100%;
+        }
+
+        .grid-line:last-child {
+            border-right: none;
+        }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            padding: 48px;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-manrope);
+        }
+
+        .mega-title {
+            font-size: 96px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.0;
+            margin-bottom: 16px;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .mono-label {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-blue);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            margin-bottom: 64px;
+            padding-bottom: 48px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hero-meta {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 24px;
+        }
+
+        /* Overview Panel */
+        .overview-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 32px;
+            margin-bottom: 64px;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .overview-item h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .overview-item ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .overview-item li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .overview-item li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-blue);
+        }
+
+        /* Presentations Section */
+        .presentations-section {
+            margin-bottom: 64px;
+        }
+
+        .section-header {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Presentation Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .presentation-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+        }
+
+        .presentation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-blue);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .presentation-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+        }
+
+        .presentation-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            color: var(--accent-blue);
+            margin-bottom: 24px;
+        }
+
+        .card-number {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .card-description {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .card-topics {
+            margin-bottom: 20px;
+        }
+
+        .card-topics-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .card-topics-list {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        .card-audience {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-cta {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: gap 0.3s ease;
+        }
+
+        .presentation-card:hover .card-cta {
+            gap: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: #475569;
+            text-align: center;
+        }
+
+        /* Color Variations for Cards */
+        .card-executive .card-icon {
+            color: #3B82F6;
+        }
+
+        .card-executive:hover::before {
+            background: #3B82F6;
+        }
+
+        .card-technical .card-icon {
+            color: #10B981;
+        }
+
+        .card-technical:hover::before {
+            background: #10B981;
+        }
+
+        .card-technical:hover {
+            border-color: #10B981;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+        }
+
+        .card-technical .card-audience {
+            color: #10B981;
+        }
+
+        .card-future .card-icon {
+            color: #8B5CF6;
+        }
+
+        .card-future:hover::before {
+            background: #8B5CF6;
+        }
+
+        .card-future:hover {
+            border-color: #8B5CF6;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+        }
+
+        .card-future .card-audience {
+            color: #8B5CF6;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1280px) {
+            #landing-container {
+                width: 100%;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="landing-container">
+        <!-- Grid Lines Background -->
+        <div class="grid-lines">
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+            <div class="grid-line"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <span class="mono-label">STRATEGIC ANALYSIS & TECHNOLOGY REVIEW</span>
+                <h1 class="mega-title">TRUESCORE</h1>
+                <p class="subtitle">AI-Powered Judging System: Comprehensive Executive Review & Technology Strategy</p>
+                <p class="subtitle" style="font-size: 18px; margin-top: 16px;">Strategic analysis of implementing AI
+                    judging for competitive cheerleading, addressing an $8M annual cost problem while positioning
+                    Varsity Brands at the forefront of sports technology innovation.</p>
+                <div class="hero-meta">
+                    Confidential — Prepared for Varsity Brands Executive Leadership | February 2026
+                </div>
+            </section>
+
+            <!-- Overview Panel -->
+            <section class="overview-panel">
+                <span class="mono-label">PROJECT SCOPE</span>
+                <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">What Was Delivered</h2>
+                <div class="overview-grid">
+                    <div class="overview-item">
+                        <h3>Business Case Analysis</h3>
+                        <ul>
+                            <li>Cost-benefit analysis</li>
+                            <li>Market evidence & timing</li>
+                            <li>Competitive landscape</li>
+                            <li>Strategic positioning</li>
+                        </ul>
+                    </div>
+                    <div class="overview-item">
+                        <h3>Technical Architecture</h3>
+                        <ul>
+                            <li>System design & components</li>
+                            <li>Training data strategy</li>
+                            <li>Implementation roadmap</li>
+                            <li>Risk mitigation plans</li>
+                        </ul>
+                    </div>
+                    <div class="overview-item">
+                        <h3>Future Technology Trends</h3>
+                        <ul>
+                            <li>Emerging sensor technologies</li>
+                            <li>AI model evolution</li>
+                            <li>Compute platform futures</li>
+                            <li>Convergence opportunities</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Presentations Section -->
+            <section class="presentations-section">
+                <h2 class="section-header">Executive Presentations</h2>
+
+                <div class="cards-grid">
+
+                    <!-- Card 1: Executive Overview -->
+                    <a href="./08_A_ExecOverview/index.html" class="presentation-card card-executive">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-number">PRESENTATION 01</div>
+                        <h3 class="card-title">The Business Case</h3>
+                        <p class="card-description">Why the $8M judging problem demands an answer in 2026. A
+                            comprehensive analysis of costs, market evidence, and the strategic window of opportunity.
+                        </p>
+                        <div class="card-topics">
+                            <span class="card-topics-label">Key Topics</span>
+                            <div class="card-topics-list">Cost analysis • Market evidence • Competitive landscape •
+                                Strategic timing • ROI projections</div>
+                        </div>
+                        <div class="card-meta">
+                            <span class="card-audience">For: CEO & Executive Leadership</span>
+                            <span class="card-cta">View Presentation <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <!-- Card 2: CTO Technical Review -->
+                    <a href="./08_B_CTO_JudgingSystemReview/index.html" class="presentation-card card-technical">
+                        <div class="card-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="card-number">PRESENTATION 02</div>
+                        <h3 class="card-title">Technical Architecture</h3>
+                        <p class="card-description">Deep-dive into the TrueScore system design, implementation strategy,
+                            and technical roadmap. Detailed analysis of architecture, data pipelines, and deployment
+                            approach.</p>
+                        <div class="card-topics">
+                            <span class="card-topics-label">Key Topics</span>
+                            <div class="card-topics-list">System architecture • Training data strategy • Edge deployment
+                                • Technical roadmap • Risk mitigation</div>
+                        </div>
+                        <div class="card-meta">
+                            <span class="card-audience">For: CTO & Engineering Leadership</span>
+                            <span class="card-cta">View Presentation <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                    <!-- Card 3: Future Tech Trends -->
+                    <a href="./08_C_FutureTrends_&_TechnologyStrategy/index.html" class="presentation-card card-future">
+                        <div class="card-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="card-number">PRESENTATION 03</div>
+                        <h3 class="card-title">Technology Futures</h3>
+                        <p class="card-description">Strategic analysis of emerging technologies and convergence
+                            opportunities. Research-backed insights into sensing tech, AI models, and platform evolution
+                            through 2030.</p>
+                        <div class="card-topics">
+                            <span class="card-topics-label">Key Topics</span>
+                            <div class="card-topics-list">Sensing tech evolution • AI model futures • Compute platforms
+                                • Human-AI interfaces • Adjacent tech convergence</div>
+                        </div>
+                        <div class="card-meta">
+                            <span class="card-audience">For: Strategy & Innovation Teams</span>
+                            <span class="card-cta">View Presentation <i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </a>
+
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <p>CONFIDENTIAL & PROPRIETARY — NOT FOR DISTRIBUTION</p>
+                <p style="margin-top: 8px; opacity: 0.6;">© 2026 TrueScore Project Analysis</p>
+            </footer>
+
+        </div>
+    </div>
+
+</body>
+
+</html>
